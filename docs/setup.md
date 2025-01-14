@@ -178,3 +178,38 @@ El archivo AndroidManifest.xml debe incluir los permisos necesarios y las config
 - Mantener las API keys seguras y no exponerlas en el código
 - Asegurarse de habilitar los servicios necesarios en la consola de Firebase
 - Verificar la compatibilidad de versiones entre las diferentes dependencias
+
+## 6. Configuración de Jetpack Compose y View Binding
+
+Se han agregado las siguientes configuraciones al archivo `app/build.gradle`:
+
+```
+android {
+    // ... configuración existente ...
+
+    buildFeatures {
+        compose true
+        viewBinding true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.5.8'
+    }
+}
+
+dependencies {
+    // Compose
+    implementation platform('androidx.compose:compose-bom:2024.02.00')
+    implementation 'androidx.activity:activity-compose:1.8.2'
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-graphics'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    implementation 'androidx.compose.material3:material3'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
+}
+
+Esta configuración permite:
+- Usar Jetpack Compose para la UI moderna
+- Usar View Binding para las vistas XML tradicionales
+- Tener interoperabilidad entre ambos sistemas de UI
