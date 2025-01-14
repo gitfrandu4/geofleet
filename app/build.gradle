@@ -24,7 +24,7 @@ android {
         // Room schema location
         javaCompileOptions {
             annotationProcessorOptions {
-                arguments += [
+                arguments = [
                     "room.schemaLocation": "$projectDir/schemas",
                     "room.incremental": "true",
                     "room.expandProjection": "true"
