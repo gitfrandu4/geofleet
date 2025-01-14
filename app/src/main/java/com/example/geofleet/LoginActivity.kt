@@ -2,14 +2,24 @@ package com.example.geofleet
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.example.geofleet.data.local.AppDatabase
+import com.example.geofleet.data.local.VehiclePositionEntity
+import com.example.geofleet.data.repository.VehicleRepository
 import com.example.geofleet.databinding.ActivityLoginBinding
+import com.example.geofleet.ui.VehiclePositionsActivity
+import com.example.geofleet.util.ConfigurationReader
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var auth: FirebaseAuth
+    private lateinit var vehicleRepository: VehicleRepository
+    private lateinit var database: AppDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -17,6 +27,11 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         auth = FirebaseAuth.getInstance()
+        vehicleRepository = VehicleRepository(this)
+        database = AppDatabase.getDatabase(this)
+        
+        // Initialize configuration reader
+        ConfigurationReader.init(this)
 
         setupListeners()
     }
@@ -38,10 +53,7 @@ class LoginActivity : AppCompatActivity() {
             }
 
             registerButton.setOnClickListener {
-                // Por ahora, solo mostraremos un mensaje
-                showMessage(getString(R.string.register_coming_soon))
-                // TODO: Implementar RegisterActivity
-                // startActivity(Intent(this@LoginActivity, RegisterActivity::class.java))
+                startActivity(Intent(this@LoginActivity, RegisterActivity::class.java))
             }
         }
     }
@@ -71,16 +83,40 @@ class LoginActivity : AppCompatActivity() {
 
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
-                showLoading(false)
-                
                 if (task.isSuccessful) {
                     showMessage(getString(R.string.login_success))
-                    startActivity(Intent(this, MainActivity::class.java))
-                    finish()
+                    fetchVehicleData()
                 } else {
+                    showLoading(false)
                     showMessage(getString(R.string.login_error))
                 }
             }
+    }
+
+    private fun fetchVehicleData() {
+        lifecycleScope.launch {
+            try {
+                val positions = vehicleRepository.getVehiclePositions(ConfigurationReader.getVehicleIds())
+                val entities = positions.mapNotNull { (id, position) ->
+                    position?.let {
+                        VehiclePositionEntity(
+                            vehicleId = id,
+                            latitude = it.latitude,
+                            longitude = it.longitude
+                        )
+                    }
+                }
+                database.vehiclePositionDao().insertAll(entities)
+                
+                // Navigate to VehiclePositionsActivity
+                startActivity(Intent(this@LoginActivity, VehiclePositionsActivity::class.java))
+                finish()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                showMessage("Error fetching vehicle data")
+                showLoading(false)
+            }
+        }
     }
 
     private fun sendPasswordReset(email: String) {
@@ -101,6 +137,7 @@ class LoginActivity : AppCompatActivity() {
 
     private fun showLoading(show: Boolean) {
         binding.loginButton.isEnabled = !show
+        binding.progressBar.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     private fun showMessage(message: String) {

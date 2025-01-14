@@ -84,6 +84,32 @@
                 android:text="@string/login"
                 style="@style/Widget.Material3.Button" />
 
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
+            <androidx.core.widget.NestedScrollView
+                android:id="@+id/resultsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:visibility="gone"
+                android:background="@drawable/results_background"
+                android:padding="8dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:id="@+id/resultsText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:fontFamily="monospace" />
+
+            </androidx.core.widget.NestedScrollView>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/forgotPasswordButton"
                 android:layout_width="wrap_content"
