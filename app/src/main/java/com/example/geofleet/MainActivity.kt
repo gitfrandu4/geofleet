@@ -1,6 +1,7 @@
 package com.example.geofleet
 
 import android.os.Bundle
+import android.content.Intent
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
@@ -11,6 +12,7 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.geofleet.databinding.ActivityMainBinding
+import com.example.geofleet.ui.MapActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.android.gms.common.GoogleApiAvailability
@@ -28,6 +30,17 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Initialize Firebase
+        auth = FirebaseAuth.getInstance()
+
+        // Check if user is signed in
+        if (auth.currentUser == null) {
+            // User is not signed in, redirect to login
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
 
         // Check Google Play Services first
         if (!checkGooglePlayServices()) {
@@ -49,7 +62,6 @@ class MainActivity : AppCompatActivity() {
         })
 
         // Initialize Firebase
-        auth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
 
         // Set up the toolbar
@@ -67,6 +79,36 @@ class MainActivity : AppCompatActivity() {
 
         setupActionBarWithNavController(navController, appBarConfiguration)
         binding.navigationView.setupWithNavController(navController)
+
+        // Set up navigation listener
+        binding.navigationView.setNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.nav_vehicle_positions -> {
+                    startActivity(Intent(this, MapActivity::class.java))
+                    finish()
+                    true
+                }
+                R.id.nav_fleet -> {
+                    navController.navigate(R.id.nav_fleet)
+                    binding.drawerLayout.closeDrawer(GravityCompat.START)
+                    true
+                }
+                R.id.nav_profile -> {
+                    navController.navigate(R.id.nav_profile)
+                    binding.drawerLayout.closeDrawer(GravityCompat.START)
+                    true
+                }
+                else -> false
+            }
+        }
+
+        // Handle destination from intent
+        intent.getStringExtra("destination")?.let { destination ->
+            when (destination) {
+                "fleet" -> navController.navigate(R.id.nav_fleet)
+                "profile" -> navController.navigate(R.id.nav_profile)
+            }
+        }
 
         // Load user data
         loadUserData()

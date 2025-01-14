@@ -31,6 +31,14 @@ class LoginActivity : AppCompatActivity() {
         database = AppDatabase.getDatabase(this)
         repository = VehicleRepository(this)
 
+        // Check if user is already signed in
+        auth.currentUser?.let { user ->
+            Log.d("LoginActivity", "User already signed in: ${user.email}")
+            // User is signed in, proceed with initial data fetch
+            fetchInitialData()
+            return
+        }
+
         setupViews()
     }
 

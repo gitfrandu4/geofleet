@@ -21,10 +21,13 @@ android {
             useSupportLibrary true
         }
 
+        // Room schema location
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments += [
-                    "room.schemaLocation": "$projectDir/schemas".toString()
+                    "room.schemaLocation": "$projectDir/schemas",
+                    "room.incremental": "true",
+                    "room.expandProjection": "true"
                 ]
             }
         }
@@ -132,4 +135,14 @@ dependencies {
     // Navigation
     implementation "androidx.navigation:navigation-fragment-ktx:2.7.7"
     implementation "androidx.navigation:navigation-ui-ktx:2.7.7"
+} 
+
+kapt {
+    arguments {
+        arg("room.schemaLocation", "$projectDir/schemas")
+        arg("room.incremental", "true")
+        arg("room.expandProjection", "true")
+    }
+    correctErrorTypes true
+    generateStubs = true
 } 
