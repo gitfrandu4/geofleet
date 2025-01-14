@@ -1,11 +1,11 @@
-package com.tuempresa.tuapp
+package com.example.geofleet
 
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
-import com.tuempresa.tuapp.databinding.ActivityLoginBinding
+import com.example.geofleet.databinding.ActivityLoginBinding
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
