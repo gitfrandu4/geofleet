@@ -15,8 +15,11 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.2.2'
         classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22'
-        classpath 'com.google.gms:google-services:4.4.1'
     }
+}
+
+plugins {
+    id 'com.google.gms.google-services' version '4.4.2' apply false
 }
 
 task clean(type: Delete) {
@@ -81,12 +84,14 @@ dependencies {
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     
-    // Firebase
-    implementation platform('com.google.firebase:firebase-bom:32.7.2')
-    implementation 'com.google.firebase:firebase-analytics-ktx'
-    implementation 'com.google.firebase:firebase-auth-ktx'
-    implementation 'com.google.firebase:firebase-firestore-ktx'
-    implementation 'com.google.firebase:firebase-messaging-ktx'
+    // Firebase (usando BoM para gestionar versiones)
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
+    
+    // Firebase SDK Core
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-messaging'
     
     // Google Maps
     implementation 'com.google.android.gms:play-services-maps:18.2.0'
@@ -213,3 +218,12 @@ Esta configuración permite:
 - Usar Jetpack Compose para la UI moderna
 - Usar View Binding para las vistas XML tradicionales
 - Tener interoperabilidad entre ambos sistemas de UI
+
+### 2.3 Verificación de la Configuración de Firebase
+
+Para verificar que Firebase está correctamente configurado:
+
+1. Asegurarse de que el archivo `google-services.json` está en la carpeta `app/`
+2. Verificar que el plugin de Google Services está aplicado tanto a nivel de proyecto como de módulo
+3. Comprobar que las dependencias de Firebase están declaradas correctamente
+4. Ejecutar la aplicación y verificar en el logcat que Firebase se inicializa sin errores

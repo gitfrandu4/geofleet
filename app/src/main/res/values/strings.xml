@@ -1,14 +1,17 @@
 <resources>
     <string name="app_name">GeoFleet</string>
-    <!-- Login Strings -->
+    <!-- Login Screen -->
+    <string name="login_title">Iniciar Sesión</string>
     <string name="email">Correo electrónico</string>
     <string name="password">Contraseña</string>
     <string name="login">Iniciar sesión</string>
     <string name="forgot_password">¿Olvidaste tu contraseña?</string>
-    <string name="register_prompt">¿No tienes cuenta? Regístrate aquí</string>
+    <string name="no_account">¿No tienes cuenta?</string>
+    <string name="register">Registrarse</string>
+    <string name="login_success">Inicio de sesión exitoso</string>
+    <string name="login_error">Error al iniciar sesión</string>
+    <string name="email_sent">Se ha enviado un correo para restablecer tu contraseña</string>
     <string name="email_required">El correo electrónico es requerido</string>
     <string name="password_required">La contraseña es requerida</string>
-    <string name="auth_failed">Error de autenticación</string>
-    <string name="password_reset_sent">Se ha enviado un correo para restablecer tu contraseña</string>
-    <string name="password_reset_failed">Error al enviar el correo de restablecimiento</string>
+    <string name="register_coming_soon">La funcionalidad de registro estará disponible próximamente</string>
 </resources>
