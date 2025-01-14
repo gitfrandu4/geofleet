@@ -1,5 +1,33 @@
 <resources>
     <string name="app_name">GeoFleet</string>
+
+    <!-- Navigation -->
+    <string name="vehicle_positions">Posiciones de vehículos</string>
+    <string name="fleet">Flota</string>
+    <string name="profile">Perfil</string>
+    <string name="menu">Menú</string>
+
+    <!-- Actions -->
+    <string name="action_search">Buscar</string>
+    <string name="action_refresh">Actualizar</string>
+    <string name="action_logout">Cerrar sesión</string>
+
+    <!-- Profile -->
+    <string name="profile_name">Nombre</string>
+    <string name="profile_email">Correo electrónico</string>
+    <string name="profile_save">Guardar cambios</string>
+
+    <!-- Fleet -->
+    <string name="fleet_add_vehicle">Añadir vehículo</string>
+    <string name="fleet_search_hint">Buscar vehículo…</string>
+    <string name="fleet_vehicle_id">ID del vehículo</string>
+    <string name="fleet_vehicle_name">Nombre del vehículo</string>
+
+    <!-- Messages -->
+    <string name="msg_changes_saved">Cambios guardados</string>
+    <string name="msg_error_saving">Error al guardar los cambios</string>
+    <string name="msg_offline_mode">Modo sin conexión</string>
+
     <!-- Login Screen -->
     <string name="login_title">Iniciar Sesión</string>
     <string name="email">Correo electrónico</string>
@@ -8,12 +36,11 @@
     <string name="forgot_password">¿Olvidaste tu contraseña?</string>
     <string name="no_account">¿No tienes cuenta?</string>
     <string name="register">Registrarse</string>
-    <string name="login_success">Inicio de sesión exitoso</string>
-    <string name="login_error">Error al iniciar sesión</string>
-    <string name="email_sent">Se ha enviado un correo para restablecer tu contraseña</string>
     <string name="email_required">El correo electrónico es requerido</string>
     <string name="password_required">La contraseña es requerida</string>
-    <string name="register_coming_soon">La funcionalidad de registro estará disponible próximamente</string>
+    <string name="login_success">Inicio de sesión exitoso</string>
+    <string name="login_error">Error al iniciar sesión</string>
+    <string name="email_sent">Correo enviado</string>
 
     <!-- Register Screen -->
     <string name="register_title">Registro</string>

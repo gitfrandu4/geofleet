@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_vehicle_positions"
+            android:icon="@drawable/ic_location"
+            android:title="@string/vehicle_positions" />
+        <item
+            android:id="@+id/nav_fleet"
+            android:icon="@drawable/ic_fleet"
+            android:title="@string/fleet" />
+        <item
+            android:id="@+id/nav_profile"
+            android:icon="@drawable/ic_person"
+            android:title="@string/profile" />
+    </group>
+</menu> 

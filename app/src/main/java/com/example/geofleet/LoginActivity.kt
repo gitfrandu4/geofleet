@@ -108,8 +108,8 @@ class LoginActivity : AppCompatActivity() {
                 }
                 database.vehiclePositionDao().insertAll(entities)
                 
-                // Navigate to VehiclePositionsActivity
-                startActivity(Intent(this@LoginActivity, VehiclePositionsActivity::class.java))
+                // Navigate to MainActivity instead of VehiclePositionsActivity
+                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                 finish()
             } catch (e: Exception) {
                 e.printStackTrace()

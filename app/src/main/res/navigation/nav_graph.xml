@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/nav_vehicle_positions">
+
+    <fragment
+        android:id="@+id/nav_vehicle_positions"
+        android:name="com.example.geofleet.ui.vehicles.VehiclePositionsFragment"
+        android:label="@string/vehicle_positions"
+        tools:layout="@layout/fragment_vehicle_positions" />
+
+    <fragment
+        android:id="@+id/nav_fleet"
+        android:name="com.example.geofleet.ui.fleet.FleetFragment"
+        android:label="@string/fleet" />
+
+    <fragment
+        android:id="@+id/nav_profile"
+        android:name="com.example.geofleet.ui.profile.ProfileFragment"
+        android:label="@string/profile" />
+
+</navigation> 
