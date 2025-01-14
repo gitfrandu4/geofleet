@@ -1,32 +1,39 @@
 package com.example.geofleet.ui.vehicles
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
-import com.example.geofleet.data.local.AppDatabase
-import com.example.geofleet.data.local.VehiclePositionEntity
-import com.example.geofleet.data.repository.VehicleRepository
+import com.example.geofleet.R
+import com.example.geofleet.data.model.VehiclePosition
 import com.example.geofleet.databinding.FragmentVehiclePositionsBinding
-import com.example.geofleet.util.ConfigurationReader
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
-class VehiclePositionsFragment : Fragment() {
+class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
     private var _binding: FragmentVehiclePositionsBinding? = null
     private val binding get() = _binding!!
-    
-    private lateinit var vehicleRepository: VehicleRepository
-    private lateinit var database: AppDatabase
-    private val adapter = VehiclePositionAdapter()
+    private val viewModel: VehiclePositionsViewModel by viewModels()
+    private var googleMap: GoogleMap? = null
+    private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
+
+    companion object {
+        private const val TAG = "VehiclePositionsFragment"
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,59 +47,112 @@ class VehiclePositionsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        vehicleRepository = VehicleRepository(requireContext())
-        database = AppDatabase.getDatabase(requireContext())
+        val mapFragment = childFragmentManager
+            .findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
 
-        setupRecyclerView()
-        setupSwipeRefresh()
-        observePositions()
-        refreshPositions()
-    }
-
-    private fun setupRecyclerView() {
-        binding.recyclerView.apply {
-            layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
-            adapter = this@VehiclePositionsFragment.adapter
+        binding.fab.setOnClickListener {
+            Log.d(TAG, "FAB clicked, refreshing positions")
+            viewModel.refreshVehiclePositions()
         }
+
+        observeViewModel()
     }
 
-    private fun setupSwipeRefresh() {
-        binding.swipeRefresh.setOnRefreshListener {
-            refreshPositions()
-        }
-    }
-
-    private fun observePositions() {
+    private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
-            database.vehiclePositionDao().getAllPositions().collectLatest { positions ->
-                android.util.Log.d("VehiclePositions", "Received ${positions.size} positions from database")
-                adapter.submitList(positions)
+            viewModel.vehiclePositions.collectLatest { positions ->
+                Log.d(TAG, "Received ${positions.size} vehicle positions")
+                updateMapMarkers(positions)
             }
         }
     }
 
-    private fun refreshPositions() {
-        binding.swipeRefresh.isRefreshing = true
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val positions = vehicleRepository.getVehiclePositions(ConfigurationReader.getVehicleIds())
-                android.util.Log.d("VehiclePositions", "Fetched positions from repository: $positions")
-                val entities = positions.mapNotNull { (id, position) ->
-                    position?.let {
-                        VehiclePositionEntity(
-                            vehicleId = id,
-                            latitude = it.latitude,
-                            longitude = it.longitude
+    override fun onMapReady(map: GoogleMap) {
+        Log.d(TAG, "Map is ready")
+        googleMap = map
+        
+        try {
+            map.uiSettings.apply {
+                isZoomControlsEnabled = true
+                isCompassEnabled = true
+                isMapToolbarEnabled = true
+            }
+            
+            // Set initial camera position to Spain
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                LatLng(40.4168, -3.7038), // Madrid coordinates
+                6f // Zoom level
+            ))
+            
+            Log.d(TAG, "Map initial setup completed successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up map: ${e.message}", e)
+        }
+        
+        viewModel.refreshVehiclePositions()
+    }
+
+    private fun updateMapMarkers(positions: List<VehiclePosition>) {
+        val map = googleMap
+        if (map == null) {
+            Log.e(TAG, "Map is null when trying to update markers")
+            return
+        }
+
+        map.clear()
+        
+        if (positions.isEmpty()) {
+            Log.d(TAG, "No positions to display")
+            Snackbar.make(binding.root, R.string.no_vehicles, Snackbar.LENGTH_SHORT).show()
+            return
+        }
+
+        Log.d(TAG, "Updating map with ${positions.size} markers")
+        val boundsBuilder = LatLngBounds.Builder()
+        
+        positions.forEach { position ->
+            val lat = position.getLatitudeAsDouble()
+            val lng = position.getLongitudeAsDouble()
+            Log.d(TAG, "Adding marker for vehicle ${position.vehicleId} at lat/lng: ($lat,$lng)")
+            
+            if (lat != 0.0 || lng != 0.0) {
+                val latLng = LatLng(lat, lng)
+                boundsBuilder.include(latLng)
+                
+                map.addMarker(
+                    MarkerOptions()
+                        .position(latLng)
+                        .title("Vehicle ${position.vehicleId}")
+                        .snippet("Last update: ${dateFormat.format(position.timestamp)}")
+                )
+            }
+        }
+
+        try {
+            val bounds = boundsBuilder.build()
+            map.animateCamera(
+                CameraUpdateFactory.newLatLngBounds(
+                    bounds,
+                    100 // padding in pixels
+                )
+            )
+            Log.d(TAG, "Camera animated to show all markers")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error animating camera: ${e.message}")
+            // If bounds are invalid, at least center on the first position
+            positions.firstOrNull()?.let { position ->
+                val lat = position.getLatitudeAsDouble()
+                val lng = position.getLongitudeAsDouble()
+                if (lat != 0.0 || lng != 0.0) {
+                    map.animateCamera(
+                        CameraUpdateFactory.newLatLngZoom(
+                            LatLng(lat, lng),
+                            12f
                         )
-                    }
+                    )
+                    Log.d(TAG, "Camera centered on first position")
                 }
-                android.util.Log.d("VehiclePositions", "Saving ${entities.size} positions to database")
-                database.vehiclePositionDao().insertAll(entities)
-            } catch (e: Exception) {
-                android.util.Log.e("VehiclePositions", "Error refreshing positions", e)
-                e.printStackTrace()
-            } finally {
-                binding.swipeRefresh.isRefreshing = false
             }
         }
     }
@@ -101,40 +161,4 @@ class VehiclePositionsFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-}
-
-class VehiclePositionAdapter : ListAdapter<VehiclePositionEntity, VehiclePositionAdapter.ViewHolder>(
-    object : DiffUtil.ItemCallback<VehiclePositionEntity>() {
-        override fun areItemsTheSame(oldItem: VehiclePositionEntity, newItem: VehiclePositionEntity): Boolean {
-            return oldItem.vehicleId == newItem.vehicleId
-        }
-
-        override fun areContentsTheSame(oldItem: VehiclePositionEntity, newItem: VehiclePositionEntity): Boolean {
-            return oldItem == newItem
-        }
-    }
-) {
-    private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(
-            com.example.geofleet.databinding.ItemVehiclePositionBinding.inflate(
-                LayoutInflater.from(parent.context),
-                parent,
-                false
-            )
-        )
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = getItem(position)
-        with(holder.binding) {
-            vehicleIdText.text = "Vehicle ID: ${item.vehicleId}"
-            positionText.text = "Position: ${item.latitude}, ${item.longitude}"
-            timestampText.text = "Last Update: ${dateFormat.format(Date(item.timestamp))}"
-        }
-    }
-
-    class ViewHolder(val binding: com.example.geofleet.databinding.ItemVehiclePositionBinding) : 
-        RecyclerView.ViewHolder(binding.root)
 } 

@@ -1,6 +1,7 @@
 package com.example.geofleet
 
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.navigation.NavController
@@ -12,6 +13,9 @@ import androidx.navigation.ui.setupWithNavController
 import com.example.geofleet.databinding.ActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.android.gms.common.GoogleApiAvailability
+import com.google.android.gms.common.ConnectionResult
+import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -24,6 +28,25 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Check Google Play Services first
+        if (!checkGooglePlayServices()) {
+            Toast.makeText(this, "Google Play Services is required", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
+
+        // Handle back press
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    binding.drawerLayout.closeDrawer(GravityCompat.START)
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
 
         // Initialize Firebase
         auth = FirebaseAuth.getInstance()
@@ -49,6 +72,27 @@ class MainActivity : AppCompatActivity() {
         loadUserData()
     }
 
+    private fun checkGooglePlayServices(): Boolean {
+        val googleApiAvailability = GoogleApiAvailability.getInstance()
+        val resultCode = googleApiAvailability.isGooglePlayServicesAvailable(this)
+
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (googleApiAvailability.isUserResolvableError(resultCode)) {
+                googleApiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST) { 
+                    finish() 
+                }?.show()
+            } else {
+                Toast.makeText(this, "This device is not supported", Toast.LENGTH_LONG).show()
+            }
+            return false
+        }
+        return true
+    }
+
+    companion object {
+        private const val PLAY_SERVICES_RESOLUTION_REQUEST = 9000
+    }
+
     private fun loadUserData() {
         auth.currentUser?.let { user ->
             firestore.collection("users").document(user.uid)
@@ -67,13 +111,5 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
-    }
-
-    override fun onBackPressed() {
-        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            binding.drawerLayout.closeDrawer(GravityCompat.START)
-        } else {
-            super.onBackPressed()
-        }
     }
 }

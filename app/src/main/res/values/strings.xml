@@ -13,9 +13,22 @@
     <string name="action_logout">Cerrar sesión</string>
 
     <!-- Profile -->
-    <string name="profile_name">Nombre</string>
+    <string name="profile_first_name">Nombre</string>
+    <string name="profile_last_name">Apellidos</string>
     <string name="profile_email">Correo electrónico</string>
+    <string name="profile_position">Puesto</string>
+    <string name="profile_gender">Género</string>
+    <string name="profile_birthdate">Fecha de nacimiento</string>
     <string name="profile_save">Guardar cambios</string>
+    <string name="profile_saved">Cambios guardados</string>
+    <string name="profile_error_saving">Error al guardar los cambios</string>
+    <string name="profile_offline">Cambios guardados localmente</string>
+
+    <!-- Gender options -->
+    <string name="gender_male">Masculino</string>
+    <string name="gender_female">Femenino</string>
+    <string name="gender_other">Otro</string>
+    <string name="gender_unspecified">No especificado</string>
 
     <!-- Fleet -->
     <string name="fleet_add_vehicle">Añadir vehículo</string>
@@ -39,7 +52,6 @@
     <string name="email_required">El correo electrónico es requerido</string>
     <string name="password_required">La contraseña es requerida</string>
     <string name="login_success">Inicio de sesión exitoso</string>
-    <string name="login_error">Error al iniciar sesión</string>
     <string name="email_sent">Correo enviado</string>
 
     <!-- Register Screen -->
@@ -52,4 +64,17 @@
     <string name="register_success">Registro exitoso</string>
     <string name="register_error">Error al registrar usuario</string>
     <string name="password_too_short">La contraseña debe tener al menos 6 caracteres</string>
+
+    <!-- Refresh -->
+    <string name="refresh_positions">Refresh vehicle positions</string>
+
+    <!-- No vehicles -->
+    <string name="no_vehicles">No hay vehículos para mostrar</string>
+
+    <!-- Error Messages -->
+    <string name="login_error">Error al iniciar sesión</string>
+    <string name="db_error">Error en la base de datos</string>
+    <string name="network_error">Error de conexión</string>
+    <string name="api_error">Error de conexión con el servidor</string>
+    <string name="database_error">Error al guardar los datos</string>
 </resources>

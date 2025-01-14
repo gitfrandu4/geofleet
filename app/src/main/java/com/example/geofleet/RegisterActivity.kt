@@ -2,6 +2,7 @@ package com.example.geofleet
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.example.geofleet.databinding.ActivityRegisterBinding
 import com.google.android.material.snackbar.Snackbar
@@ -21,13 +22,15 @@ class RegisterActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        setupListeners()
-    }
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                finish()
+            }
+        })
 
-    private fun setupListeners() {
         with(binding) {
             topAppBar.setNavigationOnClickListener {
-                onBackPressed()
+                finish()
             }
 
             registerButton.setOnClickListener {
@@ -91,16 +94,14 @@ class RegisterActivity : AppCompatActivity() {
         showLoading(true)
 
         auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener(this) { task ->
+            .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    // Guardar información adicional del usuario en Firestore
-                    val user = auth.currentUser
                     val userInfo = hashMapOf(
                         "name" to name,
-                        "email" to email,
-                        "createdAt" to System.currentTimeMillis()
+                        "email" to email
                     )
 
+                    val user = auth.currentUser
                     user?.let {
                         db.collection("users")
                             .document(it.uid)
@@ -110,7 +111,7 @@ class RegisterActivity : AppCompatActivity() {
                                 startActivity(Intent(this, MainActivity::class.java))
                                 finishAffinity()
                             }
-                            .addOnFailureListener { e ->
+                            .addOnFailureListener { _ ->
                                 showMessage(getString(R.string.register_error))
                                 showLoading(false)
                             }

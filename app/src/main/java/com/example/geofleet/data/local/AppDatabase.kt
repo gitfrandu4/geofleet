@@ -4,10 +4,20 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 
-@Database(entities = [VehiclePositionEntity::class], version = 1)
+@Database(
+    entities = [
+        VehiclePositionEntity::class,
+        UserEntity::class
+    ],
+    version = 5,
+    exportSchema = true
+)
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun vehiclePositionDao(): VehiclePositionDao
+    abstract fun userDao(): UserDao
 
     companion object {
         @Volatile
@@ -19,7 +29,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "geofleet_database"
-                ).build()
+                )
+                .fallbackToDestructiveMigration()
+                .build()
                 INSTANCE = instance
                 instance
             }

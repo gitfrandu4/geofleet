@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 data class VehiclePositionEntity(
     @PrimaryKey
     val vehicleId: String,
-    val latitude: String,
-    val longitude: String,
+    val latitude: Double,
+    val longitude: Double,
     val timestamp: Long = System.currentTimeMillis()
 ) 

@@ -2,6 +2,7 @@ package com.example.geofleet
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -9,17 +10,17 @@ import com.example.geofleet.data.local.AppDatabase
 import com.example.geofleet.data.local.VehiclePositionEntity
 import com.example.geofleet.data.repository.VehicleRepository
 import com.example.geofleet.databinding.ActivityLoginBinding
-import com.example.geofleet.ui.VehiclePositionsActivity
-import com.example.geofleet.util.ConfigurationReader
+import com.example.geofleet.ui.MapActivity
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import java.util.Properties
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var auth: FirebaseAuth
-    private lateinit var vehicleRepository: VehicleRepository
     private lateinit var database: AppDatabase
+    private lateinit var repository: VehicleRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,120 +28,148 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         auth = FirebaseAuth.getInstance()
-        vehicleRepository = VehicleRepository(this)
         database = AppDatabase.getDatabase(this)
-        
-        // Initialize configuration reader
-        ConfigurationReader.init(this)
+        repository = VehicleRepository(this)
 
-        setupListeners()
+        setupViews()
     }
 
-    private fun setupListeners() {
-        with(binding) {
-            loginButton.setOnClickListener {
-                val email = emailEditText.text.toString()
-                val password = passwordEditText.text.toString()
+    private fun setupViews() {
+        binding.loginButton.setOnClickListener {
+            val email = binding.emailEditText.text.toString()
+            val password = binding.passwordEditText.text.toString()
 
-                if (validateInput(email, password)) {
-                    loginUser(email, password)
-                }
+            if (email.isEmpty()) {
+                binding.emailLayout.error = getString(R.string.email_required)
+                return@setOnClickListener
             }
 
-            forgotPasswordButton.setOnClickListener {
-                val email = emailEditText.text.toString()
-                sendPasswordReset(email)
+            if (password.isEmpty()) {
+                binding.passwordLayout.error = getString(R.string.password_required)
+                return@setOnClickListener
             }
 
-            registerButton.setOnClickListener {
-                startActivity(Intent(this@LoginActivity, RegisterActivity::class.java))
+            loginUser(email, password)
+        }
+
+        binding.forgotPasswordButton.setOnClickListener {
+            val email = binding.emailEditText.text.toString()
+            if (email.isEmpty()) {
+                binding.emailLayout.error = getString(R.string.email_required)
+                return@setOnClickListener
             }
-        }
-    }
-
-    private fun validateInput(email: String, password: String): Boolean {
-        var isValid = true
-
-        if (email.isEmpty()) {
-            binding.emailLayout.error = getString(R.string.email_required)
-            isValid = false
-        } else {
-            binding.emailLayout.error = null
+            resetPassword(email)
         }
 
-        if (password.isEmpty()) {
-            binding.passwordLayout.error = getString(R.string.password_required)
-            isValid = false
-        } else {
-            binding.passwordLayout.error = null
+        binding.registerButton.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
         }
-
-        return isValid
     }
 
     private fun loginUser(email: String, password: String) {
         showLoading(true)
-
+        Log.d("LoginActivity", "Attempting login with email: $email")
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    showMessage(getString(R.string.login_success))
-                    fetchVehicleData()
+                    Log.d("LoginActivity", "Firebase login successful")
+                    fetchInitialData()
                 } else {
+                    Log.e("LoginActivity", "Firebase login failed", task.exception)
                     showLoading(false)
-                    showMessage(getString(R.string.login_error))
+                    Snackbar.make(binding.root, R.string.login_error, Snackbar.LENGTH_SHORT).show()
                 }
             }
     }
 
-    private fun fetchVehicleData() {
+    private fun getVehicleIdsFromConfig(): List<String> {
+        Log.d("LoginActivity", "Reading vehicle IDs from config")
+        val properties = Properties()
+        assets.open("config.properties").use { 
+            properties.load(it)
+        }
+        val ids = properties.getProperty("vehicle.ids")
+            ?.split(",")
+            ?.map { it.trim() }
+            ?: emptyList()
+        Log.d("LoginActivity", "Found ${ids.size} vehicle IDs")
+        return ids
+    }
+
+    private fun fetchInitialData() {
         lifecycleScope.launch {
             try {
-                val positions = vehicleRepository.getVehiclePositions(ConfigurationReader.getVehicleIds())
+                Log.d("LoginActivity", "Starting initial data fetch")
+                val vehicleIds = getVehicleIdsFromConfig()
+                Log.d("LoginActivity", "Got vehicle IDs: $vehicleIds")
+                
+                val positions = repository.getVehiclePositions(vehicleIds)
+                Log.d("LoginActivity", "Got positions: ${positions.size}")
+                
                 val entities = positions.mapNotNull { (id, position) ->
                     position?.let {
-                        VehiclePositionEntity(
-                            vehicleId = id,
-                            latitude = it.latitude,
-                            longitude = it.longitude
-                        )
+                        try {
+                            VehiclePositionEntity(
+                                vehicleId = id,
+                                latitude = it.latitude.toDouble(),
+                                longitude = it.longitude.toDouble(),
+                                timestamp = System.currentTimeMillis()
+                            ).also { entity ->
+                                Log.d("LoginActivity", "Created entity for vehicle $id: lat=${entity.latitude}, lon=${entity.longitude}")
+                            }
+                        } catch (e: Exception) {
+                            Log.e("LoginActivity", "Error converting position for vehicle $id", e)
+                            null
+                        }
                     }
                 }
+                Log.d("LoginActivity", "Created ${entities.size} entities")
+
                 database.vehiclePositionDao().insertAll(entities)
+                Log.d("LoginActivity", "Saved entities to database")
                 
-                // Navigate to MainActivity instead of VehiclePositionsActivity
-                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
-                finish()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                showMessage("Error fetching vehicle data")
                 showLoading(false)
+                Log.d("LoginActivity", "Login process completed successfully")
+                Snackbar.make(binding.root, R.string.login_success, Snackbar.LENGTH_SHORT)
+                    .addCallback(object : Snackbar.Callback() {
+                        override fun onDismissed(snackbar: Snackbar, event: Int) {
+                            startActivity(Intent(this@LoginActivity, MapActivity::class.java))
+                            finish()
+                        }
+                    })
+                    .show()
+            } catch (e: Exception) {
+                Log.e("LoginActivity", "Error in fetchInitialData", e)
+                showLoading(false)
+                val errorMessage = when {
+                    e.message?.contains("HTTP") == true -> getString(R.string.api_error)
+                    e.message?.contains("database") == true -> getString(R.string.database_error)
+                    else -> getString(R.string.login_error)
+                }
+                Snackbar.make(binding.root, errorMessage, Snackbar.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun sendPasswordReset(email: String) {
-        if (email.isEmpty()) {
-            binding.emailLayout.error = getString(R.string.email_required)
-            return
-        }
-
+    private fun resetPassword(email: String) {
         showLoading(true)
         auth.sendPasswordResetEmail(email)
             .addOnCompleteListener { task ->
                 showLoading(false)
                 if (task.isSuccessful) {
-                    showMessage(getString(R.string.email_sent))
+                    Snackbar.make(binding.root, R.string.email_sent, Snackbar.LENGTH_SHORT).show()
+                } else {
+                    Snackbar.make(binding.root, R.string.login_error, Snackbar.LENGTH_SHORT).show()
                 }
             }
     }
 
     private fun showLoading(show: Boolean) {
-        binding.loginButton.isEnabled = !show
         binding.progressBar.visibility = if (show) View.VISIBLE else View.GONE
-    }
-
-    private fun showMessage(message: String) {
-        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
+        binding.loginButton.isEnabled = !show
+        binding.emailEditText.isEnabled = !show
+        binding.passwordEditText.isEnabled = !show
+        binding.forgotPasswordButton.isEnabled = !show
+        binding.registerButton.isEnabled = !show
     }
 } 
