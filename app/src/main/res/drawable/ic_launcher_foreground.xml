@@ -5,29 +5,42 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Location Pin Circle -->
+    <!-- Location Pin Circle (Simulated Gradient) -->
     <path
         android:fillColor="#f2632a"
         android:pathData="M54,36 A18,18 0 0,1 72,54 A18,18 0 0,1 54,72 A18,18 0 0,1 36,54 A18,18 0 0,1 54,36"
         android:strokeWidth="2"
         android:strokeColor="#FFFFFF" />
+    <path
+        android:fillColor="#e55220"
+        android:pathData="M54,40 A14,14 0 0,1 68,54 A14,14 0 0,1 54,68 A14,14 0 0,1 40,54 A14,14 0 0,1 54,40"
+        android:strokeWidth="0"
+        android:fillAlpha="0.7" />
 
     <!-- Truck Body -->
     <path
-        android:fillColor="#1A1A1A"
-        android:pathData="M45,48h12v8h-12z" />
+        android:fillColor="#333333"
+        android:pathData="M45,48h12v8h-12z"
+        android:strokeWidth="1"
+        android:strokeColor="#1A1A1A" />
 
     <!-- Truck Cabin -->
     <path
-        android:fillColor="#1A1A1A"
-        android:pathData="M57,50h4v6h-4z" />
+        android:fillColor="#555555"
+        android:pathData="M57,50h4v6h-4z"
+        android:strokeWidth="1"
+        android:strokeColor="#1A1A1A" />
 
     <!-- Wheels -->
     <path
         android:fillColor="#FFFFFF"
+        android:strokeWidth="1"
+        android:strokeColor="#000000"
         android:pathData="M47,56a2,2 0 1,1 -4,0a2,2 0 1,1 4,0" />
     <path
         android:fillColor="#FFFFFF"
+        android:strokeWidth="1"
+        android:strokeColor="#000000"
         android:pathData="M59,56a2,2 0 1,1 -4,0a2,2 0 1,1 4,0" />
 
     <!-- Speed Lines -->
@@ -35,5 +48,19 @@
         android:strokeColor="#FFFFFF"
         android:strokeWidth="2"
         android:strokeLineCap="round"
-        android:pathData="M41,52h-4 M41,48h-6 M41,44h-8" />
+        android:strokeAlpha="0.7"
+        android:pathData="M41,52h-4" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeAlpha="0.5"
+        android:pathData="M41,48h-6" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeAlpha="0.3"
+        android:pathData="M41,44h-8" />
+
 </vector>
