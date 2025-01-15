@@ -15,4 +15,12 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">@color/brand_color</item>
     </style>
+
+    <!-- Splash screen theme -->
+    <style name="Theme.GeoFleet.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/brand_color</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimationDuration">300</item>
+        <item name="postSplashScreenTheme">@style/Theme.GeoFleet</item>
+    </style>
 </resources>
