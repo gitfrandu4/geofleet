@@ -113,11 +113,67 @@
 - Los marcadores personalizados se crean mediante un proceso de bitmap rendering
 - Optimización del tamaño de los marcadores para mejor rendimiento
 
-## Próximos Pasos Sugeridos
+## Autenticación y Actualización de Datos
 
-1. Añadir información adicional en los marcadores (velocidad, rumbo, etc.)
-2. Implementar actualización periódica automática
-3. Añadir filtros de vehículos
-4. Implementar clustering para grandes cantidades de vehículos
-5. Añadir animaciones de transición para los marcadores
-6. Implementar diferentes colores de marcadores según el estado del vehículo 
+### Autenticación de API
+- Todas las peticiones a la API requieren autenticación mediante token Bearer
+- El token se configura en `config.properties`:
+  ```properties
+  API_TOKEN=your_api_token
+  ```
+- Se incluye en las cabeceras HTTP:
+  ```kotlin
+  @GET("vehicle/{id}")
+  suspend fun getVehiclePosition(
+      @Path("id") vehicleId: String,
+      @Header("Authorization") token: String
+  ): VehiclePosition
+  ```
+
+### Actualización de Posiciones
+1. **Botón de Recarga (FAB)**
+   - Ubicado en la esquina inferior derecha
+   - Proporciona feedback visual durante la carga
+   - Se deshabilita durante la actualización
+
+2. **Proceso de Actualización**
+   ```kotlin
+   // 1. Obtener configuración
+   val vehicleIds = properties.getProperty("vehicle.ids").split(",")
+   val apiToken = "Bearer ${properties.getProperty("API_TOKEN")}"
+
+   // 2. Obtener posiciones en paralelo
+   val positions = vehicleIds.map { vehicleId ->
+       async {
+           vehicleService.getVehiclePosition(vehicleId, apiToken)
+       }
+   }.awaitAll()
+
+   // 3. Guardar en base de datos
+   database.vehiclePositionDao().insertAll(positions)
+
+   // 4. Actualizar mapa
+   updateMap()
+   ```
+
+3. **Manejo de Errores**
+   - Errores de red muestran Snackbar con opción de reintentar
+   - Errores de autenticación (401) se registran en el log
+   - Posiciones inválidas (0,0) se filtran automáticamente
+
+### Persistencia y Caché
+- Las posiciones se almacenan en la base de datos local
+- La vista del mapa lee desde la base de datos
+- Actualización manual mediante FAB o menú
+- Método `getPositionsSnapshot()` para obtener datos actuales
+
+### Navegación
+- Implementación actualizada de `onBackPressed()`
+- Soporte para Android moderno
+- Manejo correcto del drawer de navegación
+
+## Próximos Pasos
+1. Implementar actualización automática periódica
+2. Añadir animaciones de transición para marcadores
+3. Implementar clustering para múltiples vehículos
+4. Añadir filtros por estado o ruta 

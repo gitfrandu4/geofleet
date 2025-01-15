@@ -15,9 +15,18 @@ class VehiclePositionsViewModel : ViewModel() {
     private val _vehiclePositions = MutableStateFlow<List<VehiclePosition>>(emptyList())
     val vehiclePositions: StateFlow<List<VehiclePosition>> = _vehiclePositions
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
+    private val _error = MutableStateFlow<Throwable?>(null)
+    val error: StateFlow<Throwable?> = _error
+
     fun refreshVehiclePositions() {
         viewModelScope.launch {
             try {
+                _isLoading.value = true
+                _error.value = null
+
                 val snapshot = firestore.collection("vehicle_positions")
                     .orderBy("timestamp", Query.Direction.DESCENDING)
                     .get()
@@ -33,8 +42,9 @@ class VehiclePositionsViewModel : ViewModel() {
                 }
                 _vehiclePositions.value = positions
             } catch (e: Exception) {
-                // Handle error (you might want to add error handling later)
-                _vehiclePositions.value = emptyList()
+                _error.value = e
+            } finally {
+                _isLoading.value = false
             }
         }
     }

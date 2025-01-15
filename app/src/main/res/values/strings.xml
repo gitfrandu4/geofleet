@@ -11,6 +11,12 @@
     <string name="action_search">Buscar</string>
     <string name="action_refresh">Actualizar</string>
     <string name="action_logout">Cerrar sesión</string>
+    <string name="action_retry">Reintentar</string>
+
+    <!-- Loading and Error Messages -->
+    <string name="loading_positions">Cargando posiciones…</string>
+    <string name="error_no_internet">Sin conexión a Internet</string>
+    <string name="error_loading_positions">Error al cargar las posiciones</string>
 
     <!-- Profile -->
     <string name="profile_first_name">Nombre</string>

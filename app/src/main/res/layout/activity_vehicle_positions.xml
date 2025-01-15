@@ -15,9 +15,13 @@
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:contentDescription="@string/refresh_positions"
-        app:srcCompat="@drawable/ic_refresh" />
+        android:layout_gravity="top|end"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:srcCompat="@drawable/ic_refresh"
+        app:backgroundTint="#FFFFFF"
+        app:tint="#666666"
+        app:elevation="8dp"
+        app:useCompatPadding="true" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout> 
