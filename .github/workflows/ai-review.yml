@@ -3,32 +3,37 @@ name: AI Code Review
 on:
   issue_comment:
     types: [created]
-  pull_request_review_comment:
-    types: [created]
 
 jobs:
   process-commands:
-    if: github.event.issue.pull_request && (contains(github.event.comment.body, '/review') || contains(github.event.comment.body, '/summary'))
+    # Only run on PR comments
+    if: ${{ github.event.issue.pull_request && (contains(github.event.comment.body, '/review') || contains(github.event.comment.body, '/summary')) }}
     runs-on: ubuntu-latest
     permissions:
+      # Required for checking out the code
       contents: read
+      # Required for commenting on PRs
       pull-requests: write
+      # Required for reading PR information
+      issues: read
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
           
       - name: Get PR Details
         id: pr
         uses: actions/github-script@v6
         with:
           script: |
-            const pr = await github.rest.pulls.get({
+            const prNumber = context.issue.number;
+            const { data: pr } = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.issue.number
+              pull_number: prNumber
             });
-            return pr.data;
+            return pr;
 
       - name: AI Code Review
         if: contains(github.event.comment.body, '/review')
