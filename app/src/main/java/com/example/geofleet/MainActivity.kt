@@ -13,11 +13,14 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.geofleet.databinding.ActivityMainBinding
 import com.example.geofleet.ui.MapActivity
+import com.example.geofleet.ui.components.ProfileImageView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.ConnectionResult
 import android.widget.Toast
+import android.util.Log
+import android.widget.TextView
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -133,21 +136,20 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val PLAY_SERVICES_RESOLUTION_REQUEST = 9000
+        private const val TAG = "MainActivity"
     }
 
     private fun loadUserData() {
         auth.currentUser?.let { user ->
-            firestore.collection("users").document(user.uid)
-                .get()
-                .addOnSuccessListener { document ->
-                    if (document != null) {
-                        val headerView = binding.navigationView.getHeaderView(0)
-                        headerView.findViewById<android.widget.TextView>(R.id.userName)
-                            .text = document.getString("name") ?: user.displayName
-                        headerView.findViewById<android.widget.TextView>(R.id.userEmail)
-                            .text = user.email
-                    }
-                }
+            val headerView = binding.navigationView.getHeaderView(0)
+            // Set user email
+            headerView.findViewById<TextView>(R.id.nav_header_subtitle)?.text = user.email
+            
+            // Initialize profile image view
+            headerView.findViewById<ProfileImageView>(R.id.nav_header_image)?.let { profileImageView ->
+                Log.d(TAG, "Starting profile image listener")
+                profileImageView.startListeningToProfileChanges()
+            } ?: Log.e(TAG, "Could not find nav_header_image view")
         }
     }
 

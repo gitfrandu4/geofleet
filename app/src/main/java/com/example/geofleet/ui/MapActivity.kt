@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.lifecycleScope
@@ -28,19 +29,28 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
     private lateinit var binding: ActivityMapBinding
     private lateinit var map: GoogleMap
     private lateinit var database: AppDatabase
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMapBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Initialize Firebase Auth
+        auth = FirebaseAuth.getInstance()
+        
         // Check if user is signed in
-        val auth = FirebaseAuth.getInstance()
         if (auth.currentUser == null) {
             // User is not signed in, redirect to login
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return
+        }
+
+        // Set user email in navigation header
+        val headerView = binding.navigationView.getHeaderView(0)
+        headerView.findViewById<TextView>(R.id.nav_header_subtitle)?.apply {
+            text = auth.currentUser?.email ?: getString(R.string.nav_header_subtitle)
         }
 
         database = AppDatabase.getDatabase(this)

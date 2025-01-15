@@ -77,4 +77,8 @@
     <string name="network_error">Error de conexión</string>
     <string name="api_error">Error de conexión con el servidor</string>
     <string name="database_error">Error al guardar los datos</string>
+
+    <!-- Navigation Header -->
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="nav_header_subtitle">Usuario</string>
 </resources>
