@@ -1,0 +1,100 @@
+name: AI Code Review
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  process-commands:
+    if: github.event.issue.pull_request && (contains(github.event.comment.body, '/review') || contains(github.event.comment.body, '/summary'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Get PR Details
+        id: pr
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            return pr.data;
+
+      - name: AI Code Review
+        if: contains(github.event.comment.body, '/review')
+        uses: reviewdog/action-suggester@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tool_name: openai
+          level: warning
+          filter_mode: added
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: gpt-4
+          OPENAI_MAX_TOKENS: 1000
+          OPENAI_PROMPT: |
+            Eres un experto desarrollador de Android revisando código.
+            Por favor, revisa los cambios y sugiere mejoras en:
+            1. Patrones de diseño y arquitectura
+            2. Rendimiento y optimización
+            3. Mejores prácticas de Kotlin
+            4. Seguridad y manejo de errores
+            5. Documentación y claridad del código
+
+      - name: Technical Summary
+        if: contains(github.event.comment.body, '/summary')
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.issue.number;
+            
+            // Get PR changes
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner,
+              repo,
+              pull_number: prNumber
+            });
+            
+            // Generate summary prompt
+            const prompt = `Por favor, genera un resumen técnico detallado de los siguientes cambios, enfocado en el aprendizaje y las mejores prácticas:
+            
+            Archivos modificados:
+            ${files.map(f => `- ${f.filename} (${f.additions} adiciones, ${f.deletions} eliminaciones)`).join('\n')}
+            
+            Incluye:
+            1. Conceptos técnicos clave utilizados
+            2. Patrones de diseño implementados
+            3. Mejores prácticas aplicadas
+            4. Puntos de aprendizaje importantes
+            5. Referencias a documentación relevante`;
+            
+            // Call OpenAI API
+            const openai = require('openai');
+            const client = new openai.OpenAI(process.env.OPENAI_API_KEY);
+            
+            const completion = await client.chat.completions.create({
+              model: 'gpt-4',
+              messages: [{ role: 'user', content: prompt }],
+              max_tokens: 1000
+            });
+            
+            // Post summary as comment
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: prNumber,
+              body: completion.choices[0].message.content
+            });
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} 
