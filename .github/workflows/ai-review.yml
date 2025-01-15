@@ -7,21 +7,38 @@ on:
 jobs:
   process-commands:
     # Only run on PR comments
-    if: ${{ github.event.issue.pull_request && (contains(github.event.comment.body, '/review') || contains(github.event.comment.body, '/summary')) }}
+    if: |
+      github.event.issue.pull_request && 
+      (contains(github.event.comment.body, '/review') || contains(github.event.comment.body, '/summary'))
     runs-on: ubuntu-latest
     permissions:
-      # Required for checking out the code
       contents: read
-      # Required for commenting on PRs
       pull-requests: write
-      # Required for reading PR information
       issues: read
     steps:
+      - name: Debug Event
+        env:
+          EVENT_CONTEXT: ${{ toJSON(github.event) }}
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Comment body: ${{ github.event.comment.body }}"
+          echo "Is PR? ${{ github.event.issue.pull_request != '' }}"
+          echo "Full event context:"
+          echo "$EVENT_CONTEXT"
+
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
           
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install OpenAI package
+        run: npm install openai
+
       - name: Get PR Details
         id: pr
         uses: actions/github-script@v6
@@ -64,12 +81,16 @@ jobs:
             const { owner, repo } = context.repo;
             const prNumber = context.issue.number;
             
+            console.log('Starting technical summary...');
+            
             // Get PR changes
             const { data: files } = await github.rest.pulls.listFiles({
               owner,
               repo,
               pull_number: prNumber
             });
+            
+            console.log(`Found ${files.length} changed files`);
             
             // Generate summary prompt
             const prompt = `Por favor, genera un resumen técnico detallado de los siguientes cambios, enfocado en el aprendizaje y las mejores prácticas:
@@ -84,6 +105,8 @@ jobs:
             4. Puntos de aprendizaje importantes
             5. Referencias a documentación relevante`;
             
+            console.log('Calling OpenAI API...');
+            
             // Call OpenAI API
             const openai = require('openai');
             const client = new openai.OpenAI(process.env.OPENAI_API_KEY);
@@ -94,6 +117,8 @@ jobs:
               max_tokens: 1000
             });
             
+            console.log('Got OpenAI response, posting comment...');
+            
             // Post summary as comment
             await github.rest.issues.createComment({
               owner,
@@ -101,5 +126,7 @@ jobs:
               issue_number: prNumber,
               body: completion.choices[0].message.content
             });
+            
+            console.log('Summary posted successfully!');
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} 
