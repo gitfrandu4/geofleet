@@ -14,9 +14,14 @@ interface VehiclePositionDao {
     @Query("SELECT * FROM vehicle_positions ORDER BY timestamp DESC")
     fun getAllPositions(): Flow<List<VehiclePositionEntity>>
 
-    @Query("SELECT * FROM vehicle_positions WHERE vehicleId = :vehicleId ORDER BY timestamp DESC LIMIT 1")
+    @Query("SELECT * FROM vehicle_positions ORDER BY timestamp DESC")
+    suspend fun getPositionsSnapshot(): List<VehiclePositionEntity>
+
+    @Query(
+            "SELECT * FROM vehicle_positions WHERE vehicleId = :vehicleId ORDER BY timestamp DESC LIMIT 1"
+    )
     suspend fun getLastPosition(vehicleId: String): VehiclePositionEntity?
 
     @Query("DELETE FROM vehicle_positions WHERE timestamp < :timestamp")
     suspend fun deleteOldPositions(timestamp: Long)
-} 
+}

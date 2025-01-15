@@ -45,10 +45,53 @@
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
 ```
 
+### 6. Marcadores Personalizados
+- Implementación de marcadores personalizados para vehículos:
+  ```xml
+  <!-- Layout del marcador personalizado -->
+  <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:padding="4dp"
+      android:background="@drawable/marker_background">
+      <ImageView
+          android:layout_width="20dp"
+          android:layout_height="20dp"
+          android:src="@drawable/ic_vehicle_marker"/>
+  </LinearLayout>
+  ```
+
+- Diseño del icono del vehículo:
+  ```xml
+  <vector
+      android:width="16dp"
+      android:height="16dp"
+      android:viewportWidth="24"
+      android:viewportHeight="24">
+      <path
+          android:fillColor="#f2632a"
+          android:pathData="M20,8h-3L17,4L3,4c-1.1..."/>
+  </vector>
+  ```
+
+- Fondo del marcador optimizado:
+  ```xml
+  <shape>
+      <solid android:color="#FFFFFF" />
+      <corners android:radius="4dp" />
+      <stroke
+          android:width="0.5dp"
+          android:color="#80000000" />
+  </shape>
+  ```
+
 ## Funcionalidades Implementadas
 
 1. **Visualización de Vehículos**
-   - Marcadores en el mapa para cada vehículo
+   - Marcadores personalizados con icono de camión
+   - Tamaño reducido para mejor visualización del mapa
+   - Color del icono personalizado (#f2632a)
+   - Fondo blanco con borde sutil para mejor contraste
    - Título del marcador muestra el ID del vehículo
    - Filtrado automático de coordenadas inválidas (0,0)
 
@@ -67,11 +110,70 @@
 - Las coordenadas se convierten de String a Double durante el proceso de guardado
 - Se implementó manejo de errores para coordenadas inválidas
 - Se añadió logging detallado para facilitar el debugging
+- Los marcadores personalizados se crean mediante un proceso de bitmap rendering
+- Optimización del tamaño de los marcadores para mejor rendimiento
 
-## Próximos Pasos Sugeridos
+## Autenticación y Actualización de Datos
 
-1. Añadir información adicional en los marcadores (velocidad, rumbo, etc.)
-2. Implementar actualización periódica automática
-3. Añadir filtros de vehículos
-4. Mejorar el diseño de los marcadores
-5. Implementar clustering para grandes cantidades de vehículos 
+### Autenticación de API
+- Todas las peticiones a la API requieren autenticación mediante token Bearer
+- El token se configura en `config.properties`:
+  ```properties
+  API_TOKEN=your_api_token
+  ```
+- Se incluye en las cabeceras HTTP:
+  ```kotlin
+  @GET("vehicle/{id}")
+  suspend fun getVehiclePosition(
+      @Path("id") vehicleId: String,
+      @Header("Authorization") token: String
+  ): VehiclePosition
+  ```
+
+### Actualización de Posiciones
+1. **Botón de Recarga (FAB)**
+   - Ubicado en la esquina inferior derecha
+   - Proporciona feedback visual durante la carga
+   - Se deshabilita durante la actualización
+
+2. **Proceso de Actualización**
+   ```kotlin
+   // 1. Obtener configuración
+   val vehicleIds = properties.getProperty("vehicle.ids").split(",")
+   val apiToken = "Bearer ${properties.getProperty("API_TOKEN")}"
+
+   // 2. Obtener posiciones en paralelo
+   val positions = vehicleIds.map { vehicleId ->
+       async {
+           vehicleService.getVehiclePosition(vehicleId, apiToken)
+       }
+   }.awaitAll()
+
+   // 3. Guardar en base de datos
+   database.vehiclePositionDao().insertAll(positions)
+
+   // 4. Actualizar mapa
+   updateMap()
+   ```
+
+3. **Manejo de Errores**
+   - Errores de red muestran Snackbar con opción de reintentar
+   - Errores de autenticación (401) se registran en el log
+   - Posiciones inválidas (0,0) se filtran automáticamente
+
+### Persistencia y Caché
+- Las posiciones se almacenan en la base de datos local
+- La vista del mapa lee desde la base de datos
+- Actualización manual mediante FAB o menú
+- Método `getPositionsSnapshot()` para obtener datos actuales
+
+### Navegación
+- Implementación actualizada de `onBackPressed()`
+- Soporte para Android moderno
+- Manejo correcto del drawer de navegación
+
+## Próximos Pasos
+1. Implementar actualización automática periódica
+2. Añadir animaciones de transición para marcadores
+3. Implementar clustering para múltiples vehículos
+4. Añadir filtros por estado o ruta 
