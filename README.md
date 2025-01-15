@@ -10,11 +10,15 @@ GeoFleet es una aplicación Android moderna para el monitoreo y gestión de flot
 - 🌐 Sincronización en tiempo real
 - 📱 Interfaz moderna y responsive
 - 🔄 Soporte offline-first
-- 🎨 Material Design 3
+- �� Material Design 3
+- 📸 Gestión de imágenes de perfil con Firebase Storage
 
 ## Tecnologías Utilizadas
 - Kotlin
-- Firebase Authentication & Firestore
+- Firebase:
+  - Authentication
+  - Firestore
+  - Storage
 - Google Maps SDK
 - Jetpack Components:
   - Room Database
@@ -24,14 +28,14 @@ GeoFleet es una aplicación Android moderna para el monitoreo y gestión de flot
 - Coroutines & Flow
 - Material Design 3
 - Retrofit & OkHttp
-- Glide
+- Glide para carga de imágenes
 
 ## Requisitos Previos
 - Android Studio Arctic Fox o superior
 - JDK 8 o superior
 - SDK Android API 34
 - Google Play Services
-- Cuenta de Firebase
+- Cuenta de Firebase con Storage habilitado
 - API Key de Google Maps
 
 ## Configuración
@@ -43,7 +47,9 @@ git clone https://github.com/gitfrandu4/geofleet.git
 2. Configurar Firebase:
    - Crear proyecto en Firebase Console
    - Agregar aplicación Android
+   - Habilitar Authentication, Firestore y Storage
    - Descargar `google-services.json` y colocarlo en `app/`
+   - Configurar reglas de Storage para permisos de usuario
 
 3. Configurar Google Maps:
    - Obtener API Key de Google Cloud Console
@@ -59,11 +65,19 @@ app/
 │   ├── main/
 │   │   ├── java/com/example/geofleet/
 │   │   │   ├── data/
+│   │   │   │   ├── model/
+│   │   │   │   ├── local/
+│   │   │   │   └── remote/
 │   │   │   ├── ui/
+│   │   │   │   ├── profile/
+│   │   │   │   ├── vehicles/
+│   │   │   │   └── fleet/
 │   │   │   ├── service/
 │   │   │   └── utils/
 │   │   └── res/
 │   └── test/
+├── docs/
+│   └── profile_image_handling.md
 ├── build.gradle
 └── proguard-rules.pro
 ```
@@ -78,9 +92,11 @@ app/
 
 ### Gestión de Usuarios
 - Registro y autenticación
-- Perfiles de usuario
+- Perfiles de usuario con foto
 - Gestión de roles y permisos
 - Recuperación de contraseña
+- Carga y actualización de imágenes de perfil
+- Soporte para cámara y galería
 
 ### Base de Datos Local
 - Caché de posiciones

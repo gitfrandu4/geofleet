@@ -30,6 +30,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storage
 import java.io.File
 import java.io.IOException
@@ -95,7 +96,7 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
-        storage = Firebase.storage
+        storage = Firebase.storage("gs://geofleet-8f1ca.firebasestorage.app")
         
         setupViews()
         loadUserProfile()
@@ -257,39 +258,19 @@ class ProfileFragment : Fragment() {
     private fun uploadImageAndSaveProfile() {
         selectedImageUri?.let { uri ->
             try {
+                val userId = auth.currentUser?.uid ?: run {
+                    showError("Error: Usuario no autenticado")
+                    return
+                }
+                
                 val storageRef = storage.reference
-                val imageRef = storageRef.child("profile_images/${auth.currentUser?.uid ?: return}")
+                // Simplify the storage path and ensure it starts at root
+                val imageRef = storageRef.child("users").child(userId).child("profile.jpg")
                 
                 binding.saveButton.isEnabled = false
                 showProgress("Subiendo imagen...")
 
-                imageRef.putFile(uri)
-                    .addOnProgressListener { taskSnapshot ->
-                        val progress = (100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount)
-                        Log.d(TAG, "Progreso de subida: $progress%")
-                        showProgress("Subiendo imagen: ${progress.toInt()}%")
-                    }
-                    .continueWithTask { task ->
-                        if (!task.isSuccessful) {
-                            task.exception?.let { 
-                                Log.e(TAG, "Error en la subida: ${it.message}", it)
-                                throw it 
-                            }
-                        }
-                        Log.d(TAG, "Subida completada, obteniendo URL de descarga")
-                        imageRef.downloadUrl
-                    }
-                    .addOnSuccessListener { downloadUri ->
-                        Log.d(TAG, "URL de descarga obtenida: $downloadUri")
-                        saveUserProfile(downloadUri.toString())
-                        showSuccess("Imagen actualizada correctamente")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e(TAG, "Error completo al subir imagen: ${e.message}", e)
-                        showError("Error al subir la imagen: ${e.message}")
-                        binding.saveButton.isEnabled = true
-                        hideProgress()
-                    }
+                uploadImage(imageRef, uri)
             } catch (e: Exception) {
                 Log.e(TAG, "Error inesperado al subir imagen: ${e.message}", e)
                 showError("Error inesperado al subir la imagen")
@@ -299,6 +280,30 @@ class ProfileFragment : Fragment() {
         } ?: run {
             Log.e(TAG, "No hay imagen seleccionada")
             showError("No se ha seleccionado ninguna imagen")
+        }
+    }
+
+    private fun uploadImage(imageRef: StorageReference, uri: Uri) {
+        val uploadTask = imageRef.putFile(uri)
+        
+        uploadTask.addOnProgressListener { taskSnapshot ->
+            val progress = (100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount)
+            Log.d(TAG, "Progreso de subida: $progress%")
+            showProgress("Subiendo imagen: ${progress.toInt()}%")
+        }.addOnSuccessListener {
+            Log.d(TAG, "Imagen subida correctamente")
+            imageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                Log.d(TAG, "URL de descarga obtenida: $downloadUri")
+                saveUserProfile(downloadUri.toString())
+                showSuccess("Imagen actualizada correctamente")
+                binding.saveButton.isEnabled = true
+                hideProgress()
+            }
+        }.addOnFailureListener { e ->
+            Log.e(TAG, "Error al subir imagen: ${e.message}", e)
+            showError("Error al subir la imagen: ${e.localizedMessage ?: "Error desconocido"}")
+            binding.saveButton.isEnabled = true
+            hideProgress()
         }
     }
 

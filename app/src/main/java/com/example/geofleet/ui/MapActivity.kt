@@ -72,19 +72,25 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.nav_vehicle_positions -> {
-                // Already here
+                // Already in MapActivity, just close drawer
                 binding.drawerLayout.closeDrawer(GravityCompat.START)
             }
             R.id.nav_fleet -> {
-                startActivity(Intent(this, MainActivity::class.java).apply {
+                // Start MainActivity with fleet destination
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                     putExtra("destination", "fleet")
-                })
+                }
+                startActivity(intent)
                 finish()
             }
             R.id.nav_profile -> {
-                startActivity(Intent(this, MainActivity::class.java).apply {
+                // Start MainActivity with profile destination
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                     putExtra("destination", "profile")
-                })
+                }
+                startActivity(intent)
                 finish()
             }
         }
@@ -109,8 +115,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
         } else {
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
+            super.onBackPressed()
         }
     }
 
