@@ -6,11 +6,8 @@ on:
 
 jobs:
   process-commands:
-    # Only run on PR comments
-    if: |
-      github.event.issue.pull_request && 
-      (contains(github.event.comment.body, '/review') || contains(github.event.comment.body, '/summary'))
     runs-on: ubuntu-latest
+    if: ${{ github.event.issue.pull_request != null && (contains(github.event.comment.body, '/review') || contains(github.event.comment.body, '/summary')) }}
     permissions:
       contents: read
       pull-requests: write
@@ -22,15 +19,15 @@ jobs:
         run: |
           echo "Event name: ${{ github.event_name }}"
           echo "Comment body: ${{ github.event.comment.body }}"
-          echo "Is PR? ${{ github.event.issue.pull_request != '' }}"
+          echo "Is PR? ${{ github.event.issue.pull_request != null }}"
           echo "Full event context:"
           echo "$EVENT_CONTEXT"
 
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
-          
+          ref: ${{ github.event.issue.pull_request.head.sha }}
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -80,45 +77,45 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             const prNumber = context.issue.number;
-            
+
             console.log('Starting technical summary...');
-            
+
             // Get PR changes
             const { data: files } = await github.rest.pulls.listFiles({
               owner,
               repo,
               pull_number: prNumber
             });
-            
+
             console.log(`Found ${files.length} changed files`);
-            
+
             // Generate summary prompt
             const prompt = `Por favor, genera un resumen técnico detallado de los siguientes cambios, enfocado en el aprendizaje y las mejores prácticas:
-            
+
             Archivos modificados:
             ${files.map(f => `- ${f.filename} (${f.additions} adiciones, ${f.deletions} eliminaciones)`).join('\n')}
-            
+
             Incluye:
             1. Conceptos técnicos clave utilizados
             2. Patrones de diseño implementados
             3. Mejores prácticas aplicadas
             4. Puntos de aprendizaje importantes
             5. Referencias a documentación relevante`;
-            
+
             console.log('Calling OpenAI API...');
-            
+
             // Call OpenAI API
             const openai = require('openai');
             const client = new openai.OpenAI(process.env.OPENAI_API_KEY);
-            
+
             const completion = await client.chat.completions.create({
               model: 'gpt-4',
               messages: [{ role: 'user', content: prompt }],
               max_tokens: 1000
             });
-            
+
             console.log('Got OpenAI response, posting comment...');
-            
+
             // Post summary as comment
             await github.rest.issues.createComment({
               owner,
@@ -126,7 +123,7 @@ jobs:
               issue_number: prNumber,
               body: completion.choices[0].message.content
             });
-            
+
             console.log('Summary posted successfully!');
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} 
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
