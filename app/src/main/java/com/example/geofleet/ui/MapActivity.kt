@@ -1,11 +1,16 @@
 package com.example.geofleet.ui
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
+import android.view.View
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.geofleet.LoginActivity
@@ -17,6 +22,8 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.navigation.NavigationView
@@ -30,6 +37,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
     private lateinit var map: GoogleMap
     private lateinit var database: AppDatabase
     private lateinit var auth: FirebaseAuth
+    private var customMarkerBitmap: BitmapDescriptor? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,10 +72,33 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
         // Set up navigation drawer
         binding.navigationView.setNavigationItemSelectedListener(this)
 
+        // Create custom marker bitmap
+        createCustomMarkerBitmap()
+
         // Set up the map
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+    }
+
+    private fun createCustomMarkerBitmap() {
+        val markerView = layoutInflater.inflate(R.layout.custom_marker, null)
+        val markerIcon = markerView.findViewById<ImageView>(R.id.marker_icon)
+        markerIcon.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_vehicle_marker))
+        customMarkerBitmap = createCustomMarker(markerView)
+    }
+
+    private fun createCustomMarker(view: View): BitmapDescriptor {
+        view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        view.layout(0, 0, view.measuredWidth, view.measuredHeight)
+        val bitmap = Bitmap.createBitmap(
+            view.measuredWidth,
+            view.measuredHeight,
+            Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(bitmap)
+        view.draw(canvas)
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -144,6 +175,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNa
                             map.addMarker(
                                 MarkerOptions()
                                     .position(LatLng(position.latitude, position.longitude))
+                                    .icon(customMarkerBitmap)
                                     .title("Vehicle ${position.vehicleId}")
                             )
                         }

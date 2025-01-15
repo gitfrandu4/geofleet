@@ -81,4 +81,7 @@
     <!-- Navigation Header -->
     <string name="nav_header_desc">Navigation header</string>
     <string name="nav_header_subtitle">Usuario</string>
+
+    <!-- Map Markers -->
+    <string name="vehicle_marker">Marcador de vehículo</string>
 </resources>

@@ -1,10 +1,14 @@
 package com.example.geofleet.ui.vehicles
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -15,6 +19,8 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
@@ -30,6 +36,7 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
     private val viewModel: VehiclePositionsViewModel by viewModels()
     private var googleMap: GoogleMap? = null
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
+    private var customMarkerBitmap: BitmapDescriptor? = null
 
     companion object {
         private const val TAG = "VehiclePositionsFragment"
@@ -56,7 +63,34 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
             viewModel.refreshVehiclePositions()
         }
 
+        // Create custom marker bitmap
+        createCustomMarkerBitmap()
+
         observeViewModel()
+    }
+
+    private fun createCustomMarkerBitmap() {
+        val markerView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.custom_marker, null)
+
+        // Set the marker icon
+        val markerIcon = markerView.findViewById<ImageView>(R.id.marker_icon)
+        markerIcon.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_vehicle_marker))
+
+        customMarkerBitmap = createCustomMarker(markerView)
+    }
+
+    private fun createCustomMarker(view: View): BitmapDescriptor {
+        view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        view.layout(0, 0, view.measuredWidth, view.measuredHeight)
+        val bitmap = Bitmap.createBitmap(
+            view.measuredWidth,
+            view.measuredHeight,
+            Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(bitmap)
+        view.draw(canvas)
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
     private fun observeViewModel() {
@@ -123,6 +157,7 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
                 map.addMarker(
                     MarkerOptions()
                         .position(latLng)
+                        .icon(customMarkerBitmap)
                         .title("Vehicle ${position.vehicleId}")
                         .snippet("Last update: ${dateFormat.format(position.timestamp)}")
                 )
