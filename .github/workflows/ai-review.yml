@@ -88,17 +88,17 @@ jobs:
               let prompt = "";
               if (command === "review") {
                 prompt = `Eres un revisor de código. Haz una code review del siguiente Pull Request de GitHub:
-Título: ${prTitle}
-Autor: ${prAuthor}
-Descripción: ${prBody}
-Proporciona una reseña constructiva y clara, y menciona mejoras o errores a resolver.`;
-              } else if (command === "summary") {
-                prompt = `Eres un asistente que ofrece resúmenes. Resume el siguiente Pull Request de GitHub:
-Título: ${prTitle}
-Autor: ${prAuthor}
-Descripción: ${prBody}
-Proporciona un resumen conciso, con puntos clave y contexto.`;
-              }
+            Título: ${prTitle}
+            Autor: ${prAuthor}
+            Descripción: ${prBody}
+            Proporciona una reseña constructiva y clara, y menciona mejoras o errores a resolver.`;
+                        } else if (command === "summary") {
+                            prompt = `Eres un asistente que ofrece resúmenes. Resume el siguiente Pull Request de GitHub:
+            Título: ${prTitle}
+            Autor: ${prAuthor}
+            Descripción: ${prBody}
+            Proporciona un resumen conciso, con puntos clave y contexto.`;
+                        }
 
               const response = await axios.post(
                 "https://api.openai.com/v1/chat/completions",
