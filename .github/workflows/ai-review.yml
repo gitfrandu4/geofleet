@@ -1,132 +1,157 @@
-name: AI Code Review
+name: "OpenAI PR Review"
 
 on:
   issue_comment:
-    types: [created]
+    types: [created]  # Se dispara cuando se crea un comentario en un issue/pr
 
 jobs:
-  process-commands:
-    # Only run on PR comments and specific commands
-    if: ${{ github.event.issue.pull_request && 
-            (contains(github.event.comment.body, '/review') || contains(github.event.comment.body, '/summary')) }}
+  openai-pr-review:
+    # Solo ejecutamos si el comentario se hace sobre un Pull Request.
+    if: ${{ github.event.issue.pull_request != null }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      issues: write
+    
     steps:
-      - name: Debug Event
-        env:
-          EVENT_CONTEXT: ${{ toJSON(github.event) }}
+      - name: Comprobar comando en el comentario
+        id: parse_comment
         run: |
-          echo "Event name: ${{ github.event_name }}"
-          echo "Comment body: ${{ github.event.comment.body }}"
-          echo "Is PR? ${{ github.event.issue.pull_request != null }}"
-          echo "Full event context:"
-          echo "$EVENT_CONTEXT"
+          echo "Comentario recibido: ${{ github.event.comment.body }}"
+          
+          # Convertimos el comentario a minúsculas para comparaciones sencillas
+          COMENTARIO=$(echo "${{ github.event.comment.body }}" | tr '[:upper:]' '[:lower:]')
 
-      # Get PR information first
-      - name: Get PR Details
-        id: pr
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const { data: pull_request } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number
-            });
-            return pull_request;
+          # Revisar si incluye /review o /summary
+          if [[ "$COMENTARIO" == *"/review"* ]]; then
+            echo "Comando /review detectado."
+            echo "COMMAND=review" >> $GITHUB_OUTPUT
+          elif [[ "$COMENTARIO" == *"/summary"* ]]; then
+            echo "Comando /summary detectado."
+            echo "COMMAND=summary" >> $GITHUB_OUTPUT
+          else
+            echo "No se encontró comando válido."
+            echo "COMMAND=none" >> $GITHUB_OUTPUT
+          fi
 
-      # Checkout the PR's head commit
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: ${{ fromJSON(steps.pr.outputs.result).head.sha }}
+      - name: Obtener contenido del Pull Request
+        id: pr_info
+        # Obtendremos la info más básica del PR a través de la API de GitHub.
+        # (Si quisieras obtener el diff, podrías hacer un checkout y comparar cambios localmente
+        #  o usar la REST API de GitHub para extraer archivos. Este ejemplo es simplificado.)
+        run: |
+          # Obtenemos el número del PR
+          PR_NUMBER="${{ github.event.issue.number }}"
+          # Llamamos a la API para obtener datos del PR
+          PR_DATA=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}")
+          
+          # Obtenemos título, cuerpo y autor
+          PR_TITLE=$(echo "$PR_DATA" | jq -r '.title')
+          PR_BODY=$(echo "$PR_DATA" | jq -r '.body')
+          PR_AUTHOR=$(echo "$PR_DATA" | jq -r '.user.login')
 
-      - name: Setup Node.js
+          # Guardamos estos valores en outputs para usarlos en el paso siguiente
+          echo "title=$PR_TITLE" >> $GITHUB_OUTPUT
+          echo "body=$PR_BODY" >> $GITHUB_OUTPUT
+          echo "author=$PR_AUTHOR" >> $GITHUB_OUTPUT
+
+      - name: Comprobar si hay que ejecutar la llamada a OpenAI
+        if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
+        uses: actions/checkout@v3
+
+      - name: Instalar dependencias (Node.js)
+        if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '16'
 
-      - name: Install OpenAI package
-        run: npm install openai
+      - name: Instalar dependencias del proyecto
+        if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
+        run: npm install axios
 
-      - name: AI Code Review
-        if: contains(github.event.comment.body, '/review')
-        uses: reviewdog/action-suggester@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tool_name: openai
-          level: warning
-          filter_mode: added
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: gpt-4
-          OPENAI_MAX_TOKENS: 1000
-          OPENAI_PROMPT: |
-            Eres un experto desarrollador de Android revisando código.
-            Por favor, revisa los cambios y sugiere mejoras en:
-            1. Patrones de diseño y arquitectura
-            2. Rendimiento y optimización
-            3. Mejores prácticas de Kotlin
-            4. Seguridad y manejo de errores
-            5. Documentación y claridad del código
+      - name: Generar respuesta con OpenAI
+        if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
+        id: openai_call
+        run: |
+          # Creamos un pequeño script en Node.js que consulte la API de OpenAI
+          # con la información del PR y devuelva la salida por consola.
 
-      - name: Technical Summary
-        if: contains(github.event.comment.body, '/summary')
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            const prNumber = context.issue.number;
-            
-            console.log('Starting technical summary...');
-            
-            // Get PR changes
-            const { data: files } = await github.rest.pulls.listFiles({
-              owner,
-              repo,
-              pull_number: prNumber
-            });
-            
-            console.log(`Found ${files.length} changed files`);
-            
-            // Generate summary prompt
-            const prompt = `Por favor, genera un resumen técnico detallado de los siguientes cambios, enfocado en el aprendizaje y las mejores prácticas:
-            
-            Archivos modificados:
-            ${files.map(f => `- ${f.filename} (${f.additions} adiciones, ${f.deletions} eliminaciones)`).join('\n')}
-            
-            Incluye:
-            1. Conceptos técnicos clave utilizados
-            2. Patrones de diseño implementados
-            3. Mejores prácticas aplicadas
-            4. Puntos de aprendizaje importantes
-            5. Referencias a documentación relevante`;
-            
-            console.log('Calling OpenAI API...');
-            
-            // Call OpenAI API
-            const openai = require('openai');
-            const client = new openai.OpenAI(process.env.OPENAI_API_KEY);
-            
-            const completion = await client.chat.completions.create({
-              model: 'gpt-4',
-              messages: [{ role: 'user', content: prompt }],
-              max_tokens: 1000
-            });
-            
-            console.log('Got OpenAI response, posting comment...');
-            
-            // Post summary as comment
-            await github.rest.issues.createComment({
-              owner,
-              repo,
-              issue_number: prNumber,
-              body: completion.choices[0].message.content
-            });
-            
-            console.log('Summary posted successfully!');
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          cat << 'EOF' > openai_call.js
+          const axios = require('axios');
+          (async () => {
+            try {
+              const command = process.env.COMMAND;
+              const prTitle = process.env.PR_TITLE;
+              const prBody = process.env.PR_BODY;
+              const prAuthor = process.env.PR_AUTHOR;
+
+              // Ajusta tu prompt de acuerdo con la necesidad
+              let prompt = "";
+              if (command === "review") {
+                prompt = `Eres un revisor de código. Haz una code review del siguiente Pull Request de GitHub:
+Título: ${prTitle}
+Autor: ${prAuthor}
+Descripción: ${prBody}
+Proporciona una reseña constructiva y clara, y menciona mejoras o errores a resolver.`;
+              } else if (command === "summary") {
+                prompt = `Eres un asistente que ofrece resúmenes. Resume el siguiente Pull Request de GitHub:
+Título: ${prTitle}
+Autor: ${prAuthor}
+Descripción: ${prBody}
+Proporciona un resumen conciso, con puntos clave y contexto.`;
+              }
+
+              const response = await axios.post(
+                "https://api.openai.com/v1/chat/completions",
+                {
+                  model: "gpt-3.5-turbo",  // Puedes usar tu modelo preferido
+                  messages: [
+                    { role: "system", content: "Eres un asistente experimentado en revisión de PRs y creación de resúmenes."},
+                    { role: "user", content: prompt }
+                  ],
+                  temperature: 0.2
+                },
+                {
+                  headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+                  }
+                }
+              );
+              
+              // Obtenemos el texto generado
+              const generatedText = response.data.choices[0].message.content;
+              console.log("GENERATED_TEXT::" + generatedText.replace(/\r?\n/g, '\\n'));
+            } catch (error) {
+              console.error(error);
+              process.exit(1);
+            }
+          })();
+          EOF
+
+          # Ejecutamos el script
+          OUTPUT=$(COMMAND=${{ steps.parse_comment.outputs.COMMAND }} \
+                   PR_TITLE="${{ steps.pr_info.outputs.title }}" \
+                   PR_BODY="${{ steps.pr_info.outputs.body }}" \
+                   PR_AUTHOR="${{ steps.pr_info.outputs.author }}" \
+                   OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+                   node openai_call.js
+                 )
+
+          # Extraemos la línea que contiene GENERATED_TEXT::
+          # y guardamos el contenido a continuación como un output.
+          GENERATED_TEXT=$(echo "$OUTPUT" | sed -n 's/^GENERATED_TEXT:://p')
+          echo "review_or_summary=$GENERATED_TEXT" >> $GITHUB_OUTPUT
+
+      - name: Comentar en el Pull Request la respuesta
+        if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
+        run: |
+          # Comentamos en el PR con la respuesta
+          PR_NUMBER="${{ github.event.issue.number }}"
+          BODY="${{ steps.openai_call.outputs.review_or_summary }}"
+
+          # Usamos la API de GitHub para publicar el comentario
+          curl -s -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"body": "'"${BODY//\"/\\\"}"'"}' \
+            "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
