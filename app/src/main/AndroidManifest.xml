@@ -69,7 +69,7 @@
         <activity
             android:name=".ui.MapActivity"
             android:exported="false"
-            android:label="@string/vehicle_positions" />
+            android:label="@string/vehicle_positions_map" />
 
         <!-- Configuración del servicio de Firebase Cloud Messaging -->
         <!-- <service
