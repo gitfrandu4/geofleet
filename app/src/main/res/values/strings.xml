@@ -60,6 +60,9 @@
     <string name="password_required">La contraseña es requerida</string>
     <string name="login_success">Inicio de sesión exitoso</string>
     <string name="email_sent">Correo enviado</string>
+    <string name="welcome_message">¡Bienvenido/a, %1$s!</string>
+    <string name="continue_text">Continuar</string>
+    <string name="user">Usuario</string>
 
     <!-- Register Screen -->
     <string name="register_title">Registro</string>
