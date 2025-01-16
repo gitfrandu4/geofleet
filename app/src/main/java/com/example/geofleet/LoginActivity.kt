@@ -93,7 +93,7 @@ class LoginActivity : AppCompatActivity() {
     private fun getVehicleIdsFromConfig(): List<String> {
         Log.d("LoginActivity", "Reading vehicle IDs from config")
         val properties = Properties()
-        assets.open("config.properties").use { 
+        assets.open("config.properties").use {
             properties.load(it)
         }
         val ids = properties.getProperty("vehicle.ids")
@@ -110,10 +110,10 @@ class LoginActivity : AppCompatActivity() {
                 Log.d("LoginActivity", "Starting initial data fetch")
                 val vehicleIds = getVehicleIdsFromConfig()
                 Log.d("LoginActivity", "Got vehicle IDs: $vehicleIds")
-                
+
                 val positions = repository.getVehiclePositions(vehicleIds)
                 Log.d("LoginActivity", "Got positions: ${positions.size}")
-                
+
                 val entities = positions.mapNotNull { (id, position) ->
                     position?.let {
                         try {
@@ -135,7 +135,7 @@ class LoginActivity : AppCompatActivity() {
 
                 database.vehiclePositionDao().insertAll(entities)
                 Log.d("LoginActivity", "Saved entities to database")
-                
+
                 showLoading(false)
                 Log.d("LoginActivity", "Login process completed successfully")
                 Snackbar.make(binding.root, R.string.login_success, Snackbar.LENGTH_SHORT)
@@ -180,4 +180,4 @@ class LoginActivity : AppCompatActivity() {
         binding.forgotPasswordButton.isEnabled = !show
         binding.registerButton.isEnabled = !show
     }
-} 
+}

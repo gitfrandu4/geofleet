@@ -97,7 +97,7 @@ class ProfileFragment : Fragment() {
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
         storage = Firebase.storage("gs://geofleet-8f1ca.firebasestorage.app")
-        
+
         setupViews()
         loadUserProfile()
     }
@@ -262,11 +262,11 @@ class ProfileFragment : Fragment() {
                     showError("Error: Usuario no autenticado")
                     return
                 }
-                
+
                 val storageRef = storage.reference
                 // Simplify the storage path and ensure it starts at root
                 val imageRef = storageRef.child("users").child(userId).child("profile.jpg")
-                
+
                 binding.saveButton.isEnabled = false
                 showProgress("Subiendo imagen...")
 
@@ -285,7 +285,7 @@ class ProfileFragment : Fragment() {
 
     private fun uploadImage(imageRef: StorageReference, uri: Uri) {
         val uploadTask = imageRef.putFile(uri)
-        
+
         uploadTask.addOnProgressListener { taskSnapshot ->
             val progress = (100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount)
             Log.d(TAG, "Progreso de subida: $progress%")
@@ -335,7 +335,7 @@ class ProfileFragment : Fragment() {
             positionEditText.setText(profile.position)
             genderAutoComplete.setText(mapGenderToSpanish(profile.gender), false)
             birthdateEditText.setText(profile.birthdate)
-            
+
             if (profile.photoUrl.isNotEmpty()) {
                 Glide.with(this@ProfileFragment)
                     .load(profile.photoUrl)
@@ -428,4 +428,4 @@ class ProfileFragment : Fragment() {
     companion object {
         private const val TAG = "ProfileFragment"
     }
-} 
+}

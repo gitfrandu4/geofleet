@@ -30,11 +30,11 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "geofleet_database"
                 )
-                .fallbackToDestructiveMigration()
-                .build()
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }
         }
     }
-} 
+}

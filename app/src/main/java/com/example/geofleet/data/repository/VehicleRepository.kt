@@ -44,14 +44,14 @@ class VehicleRepository(context: Context) {
         Log.d("VehicleRepository", "Fetching positions for ${ids.size} vehicles")
         Log.d("VehicleRepository", "Using base URL: ${ConfigManager.getBaseUrl()}")
         Log.d("VehicleRepository", "Using API token: ${ConfigManager.getApiToken().take(20)}...")
-        
+
         ids.map { id ->
             async {
                 try {
                     Log.d("VehicleRepository", "Fetching position for vehicle $id")
                     val response = apiService.getVehiclePosition(id)
                     Log.d("VehicleRepository", "Response for vehicle $id: ${response.code()} - ${response.message()}")
-                    
+
                     if (response.isSuccessful) {
                         val position = response.body()
                         Log.d("VehicleRepository", "Position for vehicle $id: lat=${position?.latitude}, lon=${position?.longitude}")
@@ -68,4 +68,4 @@ class VehicleRepository(context: Context) {
             }
         }.awaitAll().toMap()
     }
-} 
+}
