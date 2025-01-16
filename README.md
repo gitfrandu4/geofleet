@@ -228,7 +228,7 @@ En cualquier Pull Request:
 - `/review` - Solicita una revisión técnica detallada
 - `/summary` - Genera un resumen técnico educativo
 
-#### Ejemplo de Revisión
+#### Ejemplo de Resumen
 
 ![AI Summary Demo](docs/images/ai_summary_demo.png)
 
