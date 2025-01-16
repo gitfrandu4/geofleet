@@ -83,7 +83,7 @@
         <!-- FileProvider para manejo de fotos -->
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.provider"
+            android:authorities="com.example.geofleet.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

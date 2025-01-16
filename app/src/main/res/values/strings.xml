@@ -106,4 +106,51 @@
     <string name="no_vehicles_icon">Icono de sin vehículos</string>
     <string name="no_vehicles_description">No se encontraron vehículos en la flota</string>
     <string name="last_position_format">Última posición: %1$.4f, %2$.4f</string>
+
+    <!-- Vehicle Profile -->
+    <string name="basic_info">Información Básica</string>
+    <string name="plate_number">Matrícula</string>
+    <string name="alias">Alias</string>
+    <string name="brand_model">Marca y Modelo</string>
+    <string name="technical_details">Detalles Técnicos</string>
+    <string name="vehicle_type">Tipo de Vehículo</string>
+    <string name="chassis_number">Número de Bastidor</string>
+    <string name="kilometers">Kilómetros</string>
+    <string name="status">Estado</string>
+    <string name="service_date">Fecha de Alta</string>
+    <string name="vehicle_state">Estado Actual</string>
+    <string name="image_gallery">Galería de Imágenes</string>
+    <string name="vehicle_profile">Perfil del Vehículo</string>
+    <string name="add_image">Añadir Imagen</string>
+    <string name="save_changes">Guardar Cambios</string>
+    <string name="select_image">Seleccionar Imagen</string>
+    <string name="take_photo">Tomar Foto</string>
+    <string name="choose_from_gallery">Elegir de la Galería</string>
+    <string name="changes_saved">Cambios guardados correctamente</string>
+    <string name="error_saving">Error al guardar los cambios</string>
+    <string name="uploading_image">Subiendo imagen…</string>
+    <string name="error_uploading_image">Error al subir la imagen</string>
+
+    <!-- Vehicle States -->
+    <string-array name="vehicle_types">
+        <item>Camión</item>
+        <item>Furgoneta</item>
+        <item>Maquinaria</item>
+        <item>Otro</item>
+    </string-array>
+
+    <string-array name="vehicle_states">
+        <item>Activo</item>
+        <item>En Campa</item>
+        <item>Averiado</item>
+        <item>Campa por Averías</item>
+        <item>En Proceso</item>
+        <item>Baja Definitiva</item>
+    </string-array>
+
+    <!-- Camera Permissions -->
+    <string name="camera_permission_needed">Permiso de cámara necesario</string>
+    <string name="camera_permission_explanation">Se necesita acceso a la cámara para tomar fotos del
+        vehículo</string>
+    <string name="camera_permission_denied">No se puede tomar fotos sin permiso de cámara</string>
 </resources>

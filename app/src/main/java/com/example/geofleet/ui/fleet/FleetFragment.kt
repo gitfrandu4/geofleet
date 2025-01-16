@@ -14,6 +14,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.geofleet.R
 import com.example.geofleet.databinding.FragmentFleetBinding
@@ -29,9 +30,9 @@ class FleetFragment : Fragment() {
     private lateinit var adapter: VehicleAdapter
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View {
         _binding = FragmentFleetBinding.inflate(inflater, container, false)
         return binding.root
@@ -47,15 +48,18 @@ class FleetFragment : Fragment() {
 
     private fun setupRecyclerView() {
         adapter =
-            VehicleAdapter(
-                onProfileClick = { vehicleId ->
-                    // TODO: Navigate to vehicle profile
-                },
-                onMapClick = { vehicleId ->
-                    Log.d(TAG, "Map clicked for vehicle: $vehicleId")
-                    navigateToMap(vehicleId)
-                }
-            )
+                VehicleAdapter(
+                        onProfileClick = { vehicleId ->
+                            val action =
+                                    FleetFragmentDirections
+                                            .actionFleetFragmentToVehicleProfileFragment(vehicleId)
+                            findNavController().navigate(action)
+                        },
+                        onMapClick = { vehicleId ->
+                            Log.d(TAG, "Map clicked for vehicle: $vehicleId")
+                            navigateToMap(vehicleId)
+                        }
+                )
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = this@FleetFragment.adapter
@@ -64,10 +68,10 @@ class FleetFragment : Fragment() {
 
     private fun navigateToMap(vehicleId: String) {
         val intent =
-            Intent(requireContext(), MapActivity::class.java).apply {
-                putExtra("selected_vehicle_id", vehicleId)
-                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
+                Intent(requireContext(), MapActivity::class.java).apply {
+                    putExtra("selected_vehicle_id", vehicleId)
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                }
         startActivity(intent)
     }
 
@@ -77,23 +81,23 @@ class FleetFragment : Fragment() {
 
     private fun setupSearch() {
         binding.searchInput.addTextChangedListener(
-            object : TextWatcher {
-                override fun beforeTextChanged(
-                    s: CharSequence?,
-                    start: Int,
-                    count: Int,
-                    after: Int
-                ) {}
-                override fun onTextChanged(
-                    s: CharSequence?,
-                    start: Int,
-                    before: Int,
-                    count: Int
-                ) {
-                    viewModel.setSearchQuery(s?.toString() ?: "")
+                object : TextWatcher {
+                    override fun beforeTextChanged(
+                            s: CharSequence?,
+                            start: Int,
+                            count: Int,
+                            after: Int
+                    ) {}
+                    override fun onTextChanged(
+                            s: CharSequence?,
+                            start: Int,
+                            before: Int,
+                            count: Int
+                    ) {
+                        viewModel.setSearchQuery(s?.toString() ?: "")
+                    }
+                    override fun afterTextChanged(s: Editable?) {}
                 }
-                override fun afterTextChanged(s: Editable?) {}
-            }
         )
     }
 
@@ -116,9 +120,9 @@ class FleetFragment : Fragment() {
                     viewModel.filteredVehicles.collect { vehicles ->
                         adapter.submitList(vehicles)
                         binding.emptyView.visibility =
-                            if (vehicles.isEmpty()) View.VISIBLE else View.GONE
+                                if (vehicles.isEmpty()) View.VISIBLE else View.GONE
                         binding.totalVehicles.text =
-                            getString(R.string.total_vehicles, vehicles.size)
+                                getString(R.string.total_vehicles, vehicles.size)
                     }
                 }
             }
