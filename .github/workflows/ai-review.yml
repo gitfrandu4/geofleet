@@ -2,11 +2,10 @@ name: "OpenAI PR Review"
 
 on:
   issue_comment:
-    types: [created]  # Se dispara cuando se crea un comentario en un issue/pr
+    types: [created]
 
 jobs:
   openai-pr-review:
-    # Solo ejecutamos si el comentario se hace sobre un Pull Request.
     if: ${{ github.event.issue.pull_request != null }}
     runs-on: ubuntu-latest
     
@@ -16,10 +15,8 @@ jobs:
         run: |
           echo "Comentario recibido: ${{ github.event.comment.body }}"
           
-          # Convertimos el comentario a minúsculas para comparaciones sencillas
           COMENTARIO=$(echo "${{ github.event.comment.body }}" | tr '[:upper:]' '[:lower:]')
 
-          # Revisar si incluye /review o /summary
           if [[ "$COMENTARIO" == *"/review"* ]]; then
             echo "Comando /review detectado."
             echo "COMMAND=review" >> $GITHUB_OUTPUT
@@ -33,26 +30,26 @@ jobs:
 
       - name: Obtener contenido del Pull Request
         id: pr_info
-        # Obtendremos la info más básica del PR a través de la API de GitHub.
-        # (Si quisieras obtener el diff, podrías hacer un checkout y comparar cambios localmente
-        #  o usar la REST API de GitHub para extraer archivos. Este ejemplo es simplificado.)
         run: |
-          # Obtenemos el número del PR
           PR_NUMBER="${{ github.event.issue.number }}"
-          # Llamamos a la API para obtener datos del PR
           PR_DATA=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
               "https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}")
           
-          # Obtenemos título, cuerpo y autor
           PR_TITLE=$(echo "$PR_DATA" | jq -r '.title')
           PR_BODY=$(echo "$PR_DATA" | jq -r '.body')
           PR_AUTHOR=$(echo "$PR_DATA" | jq -r '.user.login')
-
-          # Guardamos estos valores en outputs para usarlos en el paso siguiente
+          PR_DIFF_URL=$(echo "$PR_DATA" | jq -r '.diff_url')
+          
+          # Obtener el diff
+          PR_DIFF=$(curl -s "$PR_DIFF_URL")
+          
           echo "title=$PR_TITLE" >> $GITHUB_OUTPUT
           echo "body=$PR_BODY" >> $GITHUB_OUTPUT
           echo "author=$PR_AUTHOR" >> $GITHUB_OUTPUT
+          echo "diff<<EOF" >> $GITHUB_OUTPUT
+          echo "$PR_DIFF" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Comprobar si hay que ejecutar la llamada a OpenAI
         if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
@@ -72,9 +69,6 @@ jobs:
         if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
         id: openai_call
         run: |
-          # Creamos un pequeño script en Node.js que consulte la API de OpenAI
-          # con la información del PR y devuelva la salida por consola.
-
           cat << 'EOF' > openai_call.js
           const axios = require('axios');
           (async () => {
@@ -83,29 +77,89 @@ jobs:
               const prTitle = process.env.PR_TITLE;
               const prBody = process.env.PR_BODY;
               const prAuthor = process.env.PR_AUTHOR;
+              const prDiff = process.env.PR_DIFF;
 
-              // Ajusta tu prompt de acuerdo con la necesidad
               let prompt = "";
               if (command === "review") {
-                prompt = `Eres un revisor de código. Haz una code review del siguiente Pull Request de GitHub:
-            Título: ${prTitle}
-            Autor: ${prAuthor}
-            Descripción: ${prBody}
-            Proporciona una reseña constructiva y clara, y menciona mejoras o errores a resolver.`;
-                        } else if (command === "summary") {
-                            prompt = `Eres un asistente que ofrece resúmenes. Resume el siguiente Pull Request de GitHub:
-            Título: ${prTitle}
-            Autor: ${prAuthor}
-            Descripción: ${prBody}
-            Proporciona un resumen conciso, con puntos clave y contexto.`;
-                        }
+                prompt = `Eres un experto desarrollador Android con amplia experiencia en Kotlin y las mejores prácticas de desarrollo móvil.
+                Realiza una revisión detallada del siguiente Pull Request:
+
+                Título: ${prTitle}
+                Autor: ${prAuthor}
+                Descripción: ${prBody}
+                Cambios: ${prDiff}
+
+                Por favor, proporciona una revisión estructurada que incluya:
+
+                ## 🎯 Resumen General
+                - Objetivo principal de los cambios
+                - Impacto en la aplicación
+
+                ## 💡 Aspectos Positivos
+                - Buenas prácticas implementadas
+                - Patrones de diseño utilizados correctamente
+                - Optimizaciones destacables
+
+                ## 🚨 Aspectos a Mejorar
+                - Problemas potenciales de rendimiento
+                - Posibles memory leaks
+                - Manejo de ciclos de vida
+                - Gestión de recursos
+                - Seguridad y validaciones
+
+                ## 📝 Recomendaciones
+                - Sugerencias específicas de mejora
+                - Ejemplos de código cuando sea relevante
+                - Referencias a la documentación oficial
+
+                ## ✅ Checklist de Verificación
+                - [ ] Manejo correcto de corrutinas y threading
+                - [ ] Implementación adecuada de patrones MVVM/Clean Architecture
+                - [ ] Gestión apropiada del estado de la UI
+                - [ ] Manejo de errores y casos extremos
+                - [ ] Código testeable y mantenible
+
+                Por favor, sé específico y constructivo en tus comentarios.`;
+              } else if (command === "summary") {
+                prompt = `Eres un experto desarrollador Android que genera resúmenes técnicos concisos y educativos.
+                Analiza el siguiente Pull Request y genera un resumen enfocado en el aprendizaje:
+
+                Título: ${prTitle}
+                Autor: ${prAuthor}
+                Descripción: ${prBody}
+                Cambios: ${prDiff}
+
+                Por favor, estructura el resumen de la siguiente manera:
+
+                ## 🔍 Descripción Técnica
+                - Componentes Android/Kotlin modificados
+                - Cambios en la arquitectura
+                - Nuevas funcionalidades implementadas
+
+                ## 📚 Conceptos Clave
+                - Patrones de diseño utilizados
+                - APIs de Android relevantes
+                - Bibliotecas y frameworks implementados
+
+                ## 💡 Puntos de Aprendizaje
+                - Mejores prácticas demostradas
+                - Técnicas de implementación interesantes
+                - Optimizaciones notables
+
+                ## 📖 Referencias y Recursos
+                - Enlaces a documentación oficial relevante
+                - Guías de mejores prácticas aplicables
+                - Recursos de aprendizaje relacionados
+
+                Enfócate en aspectos educativos y proporciona contexto para entender mejor las decisiones técnicas tomadas.`;
+              }
 
               const response = await axios.post(
                 "https://api.openai.com/v1/chat/completions",
                 {
-                  model: "gpt-3.5-turbo",  // Puedes usar tu modelo preferido
+                  model: "gpt-4",
                   messages: [
-                    { role: "system", content: "Eres un asistente experimentado en revisión de PRs y creación de resúmenes."},
+                    { role: "system", content: "Eres un experto desarrollador Android especializado en Kotlin, arquitectura limpia y mejores prácticas de desarrollo móvil."},
                     { role: "user", content: prompt }
                   ],
                   temperature: 0.2
@@ -118,7 +172,6 @@ jobs:
                 }
               );
               
-              // Obtenemos el texto generado
               const generatedText = response.data.choices[0].message.content;
               console.log("GENERATED_TEXT::" + generatedText.replace(/\r?\n/g, '\\n'));
             } catch (error) {
@@ -128,28 +181,24 @@ jobs:
           })();
           EOF
 
-          # Ejecutamos el script
           OUTPUT=$(COMMAND=${{ steps.parse_comment.outputs.COMMAND }} \
                    PR_TITLE="${{ steps.pr_info.outputs.title }}" \
                    PR_BODY="${{ steps.pr_info.outputs.body }}" \
                    PR_AUTHOR="${{ steps.pr_info.outputs.author }}" \
+                   PR_DIFF="${{ steps.pr_info.outputs.diff }}" \
                    OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
                    node openai_call.js
                  )
 
-          # Extraemos la línea que contiene GENERATED_TEXT::
-          # y guardamos el contenido a continuación como un output.
           GENERATED_TEXT=$(echo "$OUTPUT" | sed -n 's/^GENERATED_TEXT:://p')
           echo "review_or_summary=$GENERATED_TEXT" >> $GITHUB_OUTPUT
 
       - name: Comentar en el Pull Request la respuesta
         if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
         run: |
-          # Comentamos en el PR con la respuesta
           PR_NUMBER="${{ github.event.issue.number }}"
           BODY="${{ steps.openai_call.outputs.review_or_summary }}"
 
-          # Usamos la API de GitHub para publicar el comentario
           curl -s -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Content-Type: application/json" \
