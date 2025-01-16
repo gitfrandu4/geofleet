@@ -10,11 +10,11 @@ import com.example.geofleet.R
 import com.example.geofleet.databinding.ItemGalleryImageBinding
 
 class GalleryAdapter :
-        ListAdapter<String, GalleryAdapter.GalleryViewHolder>(GalleryDiffCallback()) {
+    ListAdapter<String, GalleryAdapter.GalleryViewHolder>(GalleryDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GalleryViewHolder {
         val binding =
-                ItemGalleryImageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ItemGalleryImageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return GalleryViewHolder(binding)
     }
 
@@ -23,14 +23,14 @@ class GalleryAdapter :
     }
 
     class GalleryViewHolder(private val binding: ItemGalleryImageBinding) :
-            RecyclerView.ViewHolder(binding.root) {
+        RecyclerView.ViewHolder(binding.root) {
         fun bind(imageUrl: String) {
             Glide.with(binding.root)
-                    .load(imageUrl)
-                    .placeholder(R.drawable.ic_vehicle)
-                    .error(R.drawable.ic_vehicle)
-                    .centerCrop()
-                    .into(binding.galleryImage)
+                .load(imageUrl)
+                .placeholder(R.drawable.ic_vehicle)
+                .error(R.drawable.ic_vehicle)
+                .centerCrop()
+                .into(binding.galleryImage)
         }
     }
 }

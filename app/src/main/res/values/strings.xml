@@ -136,6 +136,18 @@
         <item>Camión</item>
         <item>Furgoneta</item>
         <item>Maquinaria</item>
+        <item>Excavadora</item>
+        <item>Retroexcavadora</item>
+        <item>Bulldozer</item>
+        <item>Grúa</item>
+        <item>Carretilla Elevadora</item>
+        <item>Dumper</item>
+        <item>Hormigonera</item>
+        <item>Compactadora</item>
+        <item>Plataforma Elevadora</item>
+        <item>Remolque</item>
+        <item>Tráiler</item>
+        <item>Volquete</item>
         <item>Otro</item>
     </string-array>
 
@@ -146,6 +158,14 @@
         <item>Campa por Averías</item>
         <item>En Proceso</item>
         <item>Baja Definitiva</item>
+        <item>En Mantenimiento</item>
+        <item>En Taller</item>
+        <item>Reservado</item>
+        <item>En Traslado</item>
+        <item>En Inspección</item>
+        <item>Pendiente de Documentación</item>
+        <item>Alquilado</item>
+        <item>Vendido</item>
     </string-array>
 
     <!-- Camera Permissions -->
