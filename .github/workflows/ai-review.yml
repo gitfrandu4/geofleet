@@ -5,32 +5,48 @@ on:
     types: [created]
 
 jobs:
-  review:
-    # Solo ejecutar si es un PR y contiene los comandos específicos
+  process-commands:
     if: |
-      github.event.issue.pull_request && 
+      github.event.issue.pull_request &&
       (contains(github.event.comment.body, '/review') || contains(github.event.comment.body, '/summary'))
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
-      issues: write
+      issues: read
 
     steps:
+      - name: Debug Event Info
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Is PR: ${{ github.event.issue.pull_request != null }}"
+          echo "Comment body: ${{ github.event.comment.body }}"
+
+      - name: Get PR Details
+        id: pr_details
+        run: |
+          PR_NUMBER="${{ github.event.issue.number }}"
+          PR_DATA=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}")
+          
+          echo "head_sha=$(echo "$PR_DATA" | jq -r '.head.sha')" >> $GITHUB_OUTPUT
+          echo "base_sha=$(echo "$PR_DATA" | jq -r '.base.sha')" >> $GITHUB_OUTPUT
+          echo "diff_url=$(echo "$PR_DATA" | jq -r '.diff_url')" >> $GITHUB_OUTPUT
+
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          ref: ${{ steps.pr_details.outputs.head_sha }}
 
-      - name: Get PR diff
-        id: diff
+      - name: Get PR Changes
+        id: changes
         run: |
-          PR_NUMBER="${{ github.event.issue.number }}"
-          PR_DIFF_URL=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}" \
-            | jq -r '.diff_url')
-          
-          PR_DIFF=$(curl -s "$PR_DIFF_URL")
+          PR_DIFF=$(curl -s "${{ steps.pr_details.outputs.diff_url }}")
+          if [ -z "$PR_DIFF" ]; then
+            echo "Error: Could not fetch PR diff"
+            exit 1
+          fi
           echo "DIFF<<EOF" >> $GITHUB_OUTPUT
           echo "$PR_DIFF" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -43,121 +59,230 @@ jobs:
       - name: Install dependencies
         run: npm install openai
 
-      - name: Generate Review
+      - name: Process Review Command
         if: contains(github.event.comment.body, '/review')
         uses: actions/github-script@v6
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          PR_DIFF: ${{ steps.diff.outputs.DIFF }}
+          PR_DIFF: ${{ steps.changes.outputs.DIFF }}
         with:
           script: |
+            if (!process.env.PR_DIFF) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: '❌ Error: No se pudieron obtener los cambios del PR para revisión'
+              });
+              return;
+            }
+
             const { OpenAI } = require('openai');
             const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-            const prompt = `Como experto desarrollador Android, revisa este Pull Request:
+            try {
+              const prompt = `Actúa como un experimentado Tech Lead de desarrollo Android con más de 10 años de experiencia en la plataforma. Tu tarea es realizar una revisión de código detallada y educativa de este Pull Request.
 
-            Cambios:
-            ${process.env.PR_DIFF}
+              Contexto: Este es un PR para una aplicación Android moderna desarrollada en Kotlin, siguiendo los principios de Clean Architecture y las mejores prácticas de Material Design.
 
-            Proporciona una revisión estructurada que incluya:
+              Cambios a revisar:
+              \`\`\`diff
+              ${process.env.PR_DIFF}
+              \`\`\`
 
-            ## 🎯 Resumen General
-            - Objetivo principal de los cambios
-            - Impacto en la aplicación
+              Instrucciones específicas:
+              1. Analiza el código línea por línea, prestando especial atención a:
+                 - Patrones de diseño y arquitectura
+                 - Manejo de recursos y memoria
+                 - Posibles problemas de rendimiento
+                 - Seguridad y manejo de datos
+                 - Calidad y mantenibilidad del código
 
-            ## 💡 Aspectos Positivos
-            - Buenas prácticas implementadas
-            - Patrones de diseño utilizados
-            - Optimizaciones destacables
+              2. Estructura tu revisión siguiendo este formato:
 
-            ## 🚨 Aspectos a Mejorar
-            - Problemas potenciales
-            - Sugerencias de mejora
-            - Posibles bugs o edge cases
+              ## 🎯 Resumen Ejecutivo
+              - Propósito principal de los cambios
+              - Impacto en la arquitectura y funcionalidad
+              - Evaluación general de la implementación
 
-            ## 📝 Recomendaciones
-            - Sugerencias específicas con ejemplos
-            - Referencias a documentación
+              ## 💫 Puntos Destacados
+              - Implementaciones elegantes o innovadoras
+              - Uso efectivo de características de Kotlin
+              - Optimizaciones y mejoras de rendimiento
+              - Buenas prácticas de UI/UX
 
-            Sé específico y constructivo en tus comentarios.`;
+              ## ⚠️ Áreas de Atención
+              - Problemas potenciales de rendimiento
+              - Posibles memory leaks
+              - Edge cases no considerados
+              - Vulnerabilidades de seguridad
+              - Problemas de mantenibilidad
 
-            const completion = await openai.chat.completions.create({
-              model: "gpt-4",
-              messages: [
-                { 
-                  role: "system", 
-                  content: "Eres un experto desarrollador Android especializado en Kotlin, arquitectura limpia y mejores prácticas de desarrollo móvil."
-                },
-                { role: "user", content: prompt }
-              ],
-              temperature: 0.2
-            });
+              ## 🛠️ Recomendaciones Técnicas
+              - Sugerencias específicas de mejora con ejemplos de código
+              - Referencias a la documentación oficial de Android
+              - Patrones y prácticas recomendadas
+              - Optimizaciones sugeridas
 
-            const review = completion.choices[0].message.content;
-            
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: `# 🔍 Revisión de Código\n\n${review}`
-            });
+              ## 📋 Checklist de Verificación
+              - [ ] Sigue los principios SOLID
+              - [ ] Implementa manejo adecuado de errores
+              - [ ] Incluye logs apropiados
+              - [ ] Considera el ciclo de vida de los componentes
+              - [ ] Maneja configuraciones de pantalla
+              - [ ] Sigue las guías de Material Design
+              - [ ] Optimiza el uso de recursos
+              - [ ] Incluye documentación adecuada
 
-      - name: Generate Summary
+              Requisitos adicionales:
+              - Sé específico y detallado en cada punto
+              - Proporciona ejemplos concretos cuando sea posible
+              - Incluye enlaces a documentación relevante
+              - Mantén un tono constructivo y educativo
+              - Prioriza las mejores prácticas de Android moderno`;
+
+              const completion = await openai.chat.completions.create({
+                model: "gpt-4",
+                messages: [
+                  { 
+                    role: "system", 
+                    content: "Eres un Tech Lead de Android altamente experimentado, especializado en desarrollo moderno con Kotlin, arquitectura limpia, patrones de diseño y mejores prácticas de la plataforma. Tu objetivo es proporcionar revisiones de código detalladas, educativas y accionables que ayuden a mejorar la calidad del código y el conocimiento del equipo. Tienes amplia experiencia en optimización de rendimiento, seguridad móvil y desarrollo de aplicaciones escalables."
+                  },
+                  { role: "user", content: prompt }
+                ],
+                temperature: 0.1,
+                max_tokens: 2500
+              });
+
+              const review = completion.choices[0].message.content;
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `# 🔍 Revisión Técnica del Pull Request\n\n${review}\n\n---\n*Revisión generada por el AI Code Reviewer - v2.0*`
+              });
+            } catch (error) {
+              console.error('Error during review generation:', error);
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `❌ Error al generar la revisión: ${error.message}`
+              });
+            }
+
+      - name: Process Summary Command
         if: contains(github.event.comment.body, '/summary')
         uses: actions/github-script@v6
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          PR_DIFF: ${{ steps.diff.outputs.DIFF }}
+          PR_DIFF: ${{ steps.changes.outputs.DIFF }}
         with:
           script: |
+            if (!process.env.PR_DIFF) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: '❌ Error: No se pudieron obtener los cambios del PR para el resumen'
+              });
+              return;
+            }
+
             const { OpenAI } = require('openai');
             const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-            const prompt = `Como experto desarrollador Android, genera un resumen técnico educativo de este Pull Request:
+            try {
+              const prompt = `Actúa como un Arquitecto de Software Android con amplia experiencia en desarrollo móvil moderno. Tu tarea es crear un resumen técnico educativo de este Pull Request que sirva como documento de aprendizaje para el equipo.
 
-            Cambios:
-            ${process.env.PR_DIFF}
+              Contexto: Este PR es parte de una aplicación Android moderna desarrollada en Kotlin, siguiendo Clean Architecture y las mejores prácticas actuales de desarrollo móvil.
 
-            Estructura el resumen así:
+              Cambios a analizar:
+              \`\`\`diff
+              ${process.env.PR_DIFF}
+              \`\`\`
 
-            ## 🔍 Descripción Técnica
-            - Componentes modificados
-            - Cambios en la arquitectura
-            - Nuevas funcionalidades
+              Instrucciones específicas:
+              1. Analiza los cambios técnicos y su impacto en:
+                 - Arquitectura de la aplicación
+                 - Patrones de diseño implementados
+                 - Uso de APIs y bibliotecas
+                 - Rendimiento y escalabilidad
+                 - Mantenibilidad y testing
 
-            ## 📚 Conceptos Clave
-            - Patrones de diseño
-            - APIs relevantes
-            - Bibliotecas utilizadas
+              2. Estructura el resumen siguiendo este formato:
 
-            ## 💡 Puntos de Aprendizaje
-            - Mejores prácticas
-            - Técnicas interesantes
-            - Optimizaciones
+              ## 🔍 Análisis Técnico
+              - Descripción detallada de los cambios arquitectónicos
+              - Impacto en los componentes existentes
+              - Nuevas funcionalidades y su implementación
+              - Cambios en el flujo de datos
 
-            ## 📖 Referencias
-            - Documentación relevante
-            - Recursos de aprendizaje
+              ## 🎯 Objetivos y Soluciones
+              - Problema(s) que resuelve este PR
+              - Enfoque técnico elegido
+              - Alternativas consideradas
+              - Justificación de las decisiones técnicas
 
-            Enfócate en el valor educativo y el contexto técnico.`;
+              ## 📚 Conceptos Técnicos Clave
+              - Patrones de diseño aplicados
+              - APIs de Android utilizadas
+              - Bibliotecas y frameworks implementados
+              - Características de Kotlin aprovechadas
 
-            const completion = await openai.chat.completions.create({
-              model: "gpt-4",
-              messages: [
-                { 
-                  role: "system", 
-                  content: "Eres un experto desarrollador Android especializado en Kotlin, arquitectura limpia y mejores prácticas de desarrollo móvil."
-                },
-                { role: "user", content: prompt }
-              ],
-              temperature: 0.2
-            });
+              ## 💡 Lecciones y Mejores Prácticas
+              - Técnicas de desarrollo Android moderno
+              - Optimizaciones de rendimiento
+              - Patrones de arquitectura limpia
+              - Prácticas de testing
 
-            const summary = completion.choices[0].message.content;
-            
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: `# 📖 Resumen Técnico\n\n${summary}`
-            });
+              ## 🔗 Referencias y Recursos
+              - Enlaces a documentación oficial de Android
+              - Guías relevantes de Kotlin
+              - Artículos técnicos relacionados
+              - Ejemplos de implementaciones similares
+
+              ## 📋 Puntos de Aprendizaje
+              - Conceptos técnicos importantes
+              - Técnicas avanzadas utilizadas
+              - Consideraciones de rendimiento
+              - Mejores prácticas implementadas
+
+              Requisitos adicionales:
+              - Enfócate en el valor educativo y la transferencia de conocimiento
+              - Proporciona ejemplos concretos y casos de uso
+              - Incluye referencias específicas a la documentación
+              - Destaca las innovaciones técnicas y su propósito
+              - Mantén un enfoque práctico y aplicable`;
+
+              const completion = await openai.chat.completions.create({
+                model: "gpt-4",
+                messages: [
+                  { 
+                    role: "system", 
+                    content: "Eres un Arquitecto de Software Android con amplia experiencia en desarrollo móvil moderno, especializado en Kotlin, Clean Architecture, patrones de diseño y mejores prácticas. Tu objetivo es crear resúmenes técnicos educativos que ayuden al equipo a comprender las decisiones arquitectónicas, patrones implementados y lecciones técnicas importantes. Tienes un profundo conocimiento de las últimas tendencias y mejores prácticas en desarrollo Android."
+                  },
+                  { role: "user", content: prompt }
+                ],
+                temperature: 0.1,
+                max_tokens: 2500
+              });
+
+              const summary = completion.choices[0].message.content;
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `# 📖 Resumen Técnico Educativo\n\n${summary}\n\n---\n*Resumen generado por el AI Technical Summarizer - v2.0*`
+              });
+            } catch (error) {
+              console.error('Error during summary generation:', error);
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `❌ Error al generar el resumen: ${error.message}`
+              });
+            }
