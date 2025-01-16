@@ -27,10 +27,10 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.launch
 import java.net.UnknownHostException
 import java.text.SimpleDateFormat
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
     private var _binding: FragmentVehiclePositionsBinding? = null
@@ -43,10 +43,17 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
     private var isLoading = false
     private val TAG = "VehiclePositionsFragment"
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate: Initializing ViewModel")
+        // Force ViewModel initialization
+        viewModel
+    }
+
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View {
         Log.d(TAG, "onCreateView started")
         _binding = FragmentVehiclePositionsBinding.inflate(inflater, container, false)
@@ -58,46 +65,64 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
         super.onViewCreated(view, savedInstanceState)
         Log.d(TAG, "onViewCreated started")
 
-        val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
-
-        binding.fab.let {
-            Log.d(TAG, "FAB found in binding")
-            it.visibility = View.VISIBLE
-            it.setOnClickListener { _ ->
-                Log.d(TAG, "FAB clicked")
-                if (!isLoading) {
-                    refreshVehiclePositions()
-                }
-            }
-        }
-
-        createCustomMarkerBitmap()
         setupObservers()
+        setupMap()
+        setupFab()
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    private fun setupMap() {
+        Log.d(TAG, "Setting up map")
+        val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+        createCustomMarkerBitmap()
+    }
+
+    private fun setupFab() {
+        binding.fab.let {
+            Log.d(TAG, "Setting up FAB")
+            it.visibility = View.VISIBLE
+            it.setOnClickListener { _ ->
+                Log.d(TAG, "FAB clicked, triggering refresh")
+                refreshVehiclePositions()
+            }
+        }
     }
 
     private fun setupObservers() {
+        Log.d(TAG, "Setting up observers")
         viewLifecycleOwner.lifecycleScope.launch {
+            Log.d(TAG, "Launching observers coroutine")
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                Log.d(TAG, "Observers in STARTED state")
+
                 launch {
+                    Log.d(TAG, "Collecting isLoading state")
                     viewModel.isLoading.collect { loading ->
+                        Log.d(TAG, "Loading state changed: $loading")
                         isLoading = loading
-                        _binding?.fab?.isEnabled = !loading
+                        binding.fab?.isEnabled = !loading
                         if (loading) {
                             showLoadingMessage()
                         }
                     }
                 }
 
-                launch { viewModel.error.collect { error -> error?.let { handleError(it) } } }
+                launch {
+                    Log.d(TAG, "Collecting error state")
+                    viewModel.error.collect { error ->
+                        error?.let {
+                            Log.e(TAG, "Error received", it)
+                            handleError(it)
+                        }
+                    }
+                }
 
                 launch {
-                    viewModel.vehiclePositions.collect { positions -> updateMapMarkers(positions) }
+                    Log.d(TAG, "Collecting vehicle positions")
+                    viewModel.vehiclePositions.collect { positions ->
+                        Log.d(TAG, "Received ${positions.size} positions")
+                        updateMapMarkers(positions)
+                    }
                 }
             }
         }
@@ -112,21 +137,23 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
     private fun handleError(error: Throwable) {
         _binding?.let { binding ->
             val messageResId =
-                when (error) {
-                    is UnknownHostException -> R.string.error_no_internet
-                    else -> R.string.error_loading_positions
-                }
+                    when (error) {
+                        is UnknownHostException -> R.string.error_no_internet
+                        else -> R.string.error_loading_positions
+                    }
             Snackbar.make(binding.root, messageResId, Snackbar.LENGTH_LONG)
-                .setAction(R.string.action_retry) { refreshVehiclePositions() }
-                .show()
+                    .setAction(R.string.action_retry) { refreshVehiclePositions() }
+                    .show()
         }
     }
 
     private fun refreshVehiclePositions() {
+        Log.d(TAG, "Requesting vehicle positions refresh")
         viewModel.refreshVehiclePositions()
     }
 
     override fun onMapReady(map: GoogleMap) {
+        Log.d(TAG, "onMapReady: Configurando mapa")
         googleMap = map
 
         try {
@@ -137,16 +164,18 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
             }
 
             map.moveCamera(
-                CameraUpdateFactory.newLatLngZoom(
-                    LatLng(40.4168, -3.7038), // Madrid coordinates
-                    6f // Zoom level
-                )
+                    CameraUpdateFactory.newLatLngZoom(
+                            LatLng(28.4697, -16.2548), // Tenerife coordinates
+                            9f // Zoom level
+                    )
             )
+
+            // Initial load after map is ready
+            Log.d(TAG, "onMapReady: Iniciando carga inicial")
+            refreshVehiclePositions()
         } catch (e: Exception) {
             Log.e(TAG, "Error setting up map: ${e.message}", e)
         }
-
-        refreshVehiclePositions()
     }
 
     private fun createCustomMarkerBitmap() {
@@ -154,7 +183,7 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
 
         val markerIcon = markerView.findViewById<ImageView>(R.id.marker_icon)
         markerIcon.setImageDrawable(
-            ContextCompat.getDrawable(requireContext(), R.drawable.ic_vehicle_marker)
+                ContextCompat.getDrawable(requireContext(), R.drawable.ic_vehicle_marker)
         )
 
         customMarkerBitmap = createCustomMarker(markerView)
@@ -164,11 +193,11 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
         view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
         view.layout(0, 0, view.measuredWidth, view.measuredHeight)
         val bitmap =
-            Bitmap.createBitmap(
-                view.measuredWidth,
-                view.measuredHeight,
-                Bitmap.Config.ARGB_8888
-            )
+                Bitmap.createBitmap(
+                        view.measuredWidth,
+                        view.measuredHeight,
+                        Bitmap.Config.ARGB_8888
+                )
         val canvas = Canvas(bitmap)
         view.draw(canvas)
         return BitmapDescriptorFactory.fromBitmap(bitmap)
@@ -204,11 +233,11 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
                 boundsBuilder.include(latLng)
 
                 map.addMarker(
-                    MarkerOptions()
-                        .position(latLng)
-                        .icon(customMarkerBitmap)
-                        .title("Vehicle ${position.vehicleId}")
-                        .snippet("Last update: ${dateFormat.format(position.timestamp)}")
+                        MarkerOptions()
+                                .position(latLng)
+                                .icon(customMarkerBitmap)
+                                .title("Vehicle ${position.vehicleId}")
+                                .snippet("Last update: ${dateFormat.format(position.timestamp)}")
                 )
             }
         }
@@ -216,10 +245,10 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
         try {
             val bounds = boundsBuilder.build()
             map.animateCamera(
-                CameraUpdateFactory.newLatLngBounds(
-                    bounds,
-                    100 // padding in pixels
-                )
+                    CameraUpdateFactory.newLatLngBounds(
+                            bounds,
+                            100 // padding in pixels
+                    )
             )
             Log.d(TAG, "Camera animated to show all markers")
         } catch (e: Exception) {
@@ -233,6 +262,22 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume called")
+        if (googleMap != null && !isLoading) {
+            Log.d(TAG, "onResume: Refreshing vehicle positions")
+            refreshVehiclePositions()
+        } else {
+            Log.d(TAG, "onResume: Skipping refresh - map not ready or loading in progress")
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {

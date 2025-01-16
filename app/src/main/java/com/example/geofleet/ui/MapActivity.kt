@@ -31,6 +31,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
+import java.util.Properties
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
@@ -38,10 +39,9 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.Properties
 
 class MapActivity :
-    AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
+        AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
     private lateinit var binding: ActivityMapBinding
     private lateinit var map: GoogleMap
     private lateinit var database: AppDatabase
@@ -106,11 +106,11 @@ class MapActivity :
         view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
         view.layout(0, 0, view.measuredWidth, view.measuredHeight)
         val bitmap =
-            Bitmap.createBitmap(
-                view.measuredWidth,
-                view.measuredHeight,
-                Bitmap.Config.ARGB_8888
-            )
+                Bitmap.createBitmap(
+                        view.measuredWidth,
+                        view.measuredHeight,
+                        Bitmap.Config.ARGB_8888
+                )
         val canvas = Canvas(bitmap)
         view.draw(canvas)
         return BitmapDescriptorFactory.fromBitmap(bitmap)
@@ -135,24 +135,24 @@ class MapActivity :
             R.id.nav_fleet -> {
                 // Start MainActivity with fleet destination
                 val intent =
-                    Intent(this, MainActivity::class.java).apply {
-                        flags =
-                            Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                            Intent.FLAG_ACTIVITY_SINGLE_TOP
-                        putExtra("destination", "fleet")
-                    }
+                        Intent(this, MainActivity::class.java).apply {
+                            flags =
+                                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                                            Intent.FLAG_ACTIVITY_SINGLE_TOP
+                            putExtra("destination", "fleet")
+                        }
                 startActivity(intent)
                 finish()
             }
             R.id.nav_profile -> {
                 // Start MainActivity with profile destination
                 val intent =
-                    Intent(this, MainActivity::class.java).apply {
-                        flags =
-                            Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                            Intent.FLAG_ACTIVITY_SINGLE_TOP
-                        putExtra("destination", "profile")
-                    }
+                        Intent(this, MainActivity::class.java).apply {
+                            flags =
+                                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                                            Intent.FLAG_ACTIVITY_SINGLE_TOP
+                            putExtra("destination", "profile")
+                        }
                 startActivity(intent)
                 finish()
             }
@@ -179,8 +179,7 @@ class MapActivity :
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
         } else {
-            @Suppress("DEPRECATION")
-            super.onBackPressed()
+            @Suppress("DEPRECATION") super.onBackPressed()
         }
     }
 
@@ -196,32 +195,32 @@ class MapActivity :
             // Add markers for each vehicle
             positions.forEach { position: VehiclePositionEntity ->
                 Log.d(
-                    "MapActivity",
-                    "Position for vehicle ${position.vehicleId}: lat=${position.latitude}, lng=${position.longitude}"
+                        "MapActivity",
+                        "Position for vehicle ${position.vehicleId}: lat=${position.latitude}, lng=${position.longitude}"
                 )
                 if (position.latitude != 0.0 || position.longitude != 0.0) {
                     map.addMarker(
-                        MarkerOptions()
-                            .position(LatLng(position.latitude, position.longitude))
-                            .icon(customMarkerBitmap)
-                            .title("Vehicle ${position.vehicleId}")
+                            MarkerOptions()
+                                    .position(LatLng(position.latitude, position.longitude))
+                                    .icon(customMarkerBitmap)
+                                    .title("Vehicle ${position.vehicleId}")
                     )
                 }
             }
 
             // Center map on first valid position
             positions
-                .firstOrNull { position: VehiclePositionEntity ->
-                    position.latitude != 0.0 || position.longitude != 0.0
-                }
-                ?.let { position: VehiclePositionEntity ->
-                    map.animateCamera(
-                        CameraUpdateFactory.newLatLngZoom(
-                            LatLng(position.latitude, position.longitude),
-                            12f
+                    .firstOrNull { position: VehiclePositionEntity ->
+                        position.latitude != 0.0 || position.longitude != 0.0
+                    }
+                    ?.let { position: VehiclePositionEntity ->
+                        map.animateCamera(
+                                CameraUpdateFactory.newLatLngZoom(
+                                        LatLng(position.latitude, position.longitude),
+                                        12f
+                                )
                         )
-                    )
-                }
+                    }
         } catch (e: Exception) {
             Log.e("MapActivity", "Error updating map", e)
             throw e
@@ -250,33 +249,42 @@ class MapActivity :
 
                 // Fetch all vehicle positions from API in parallel
                 val positions =
-                    vehicleIds
-                        .map { vehicleId ->
-                            async {
-                                try {
-                                    val position =
-                                        vehicleService.getVehiclePosition(
-                                            vehicleId,
-                                            apiToken
-                                        )
-                                    VehiclePositionEntity(
-                                        vehicleId = vehicleId,
-                                        latitude = position.getLatitudeAsDouble(),
-                                        longitude = position.getLongitudeAsDouble(),
-                                        timestamp = position.timestamp
-                                    )
-                                } catch (e: Exception) {
-                                    Log.e(
-                                        "MapActivity",
-                                        "Error fetching position for vehicle $vehicleId",
-                                        e
-                                    )
-                                    null
+                        vehicleIds
+                                .map { vehicleId ->
+                                    async {
+                                        try {
+                                            val position =
+                                                    vehicleService.getVehiclePosition(
+                                                            vehicleId,
+                                                            apiToken
+                                                    )
+                                            position?.let { pos ->
+                                                VehiclePositionEntity(
+                                                        vehicleId = vehicleId,
+                                                        latitude = pos.getLatitudeAsDouble(),
+                                                        longitude = pos.getLongitudeAsDouble(),
+                                                        timestamp = pos.timestamp
+                                                )
+                                            }
+                                                    ?: run {
+                                                        Log.w(
+                                                                "MapActivity",
+                                                                "No hay datos disponibles para el vehículo: $vehicleId"
+                                                        )
+                                                        null
+                                                    }
+                                        } catch (e: Exception) {
+                                            Log.e(
+                                                    "MapActivity",
+                                                    "Error fetching position for vehicle $vehicleId",
+                                                    e
+                                            )
+                                            null
+                                        }
+                                    }
                                 }
-                            }
-                        }
-                        .awaitAll()
-                        .filterNotNull()
+                                .awaitAll()
+                                .filterNotNull()
 
                 // Save to database
                 database.vehiclePositionDao().insertAll(positions)
@@ -286,8 +294,8 @@ class MapActivity :
             } catch (e: Exception) {
                 Log.e("MapActivity", "Error refreshing positions", e)
                 Snackbar.make(binding.root, R.string.network_error, Snackbar.LENGTH_LONG)
-                    .setAction(R.string.action_retry) { refreshVehiclePositions() }
-                    .show()
+                        .setAction(R.string.action_retry) { refreshVehiclePositions() }
+                        .show()
             } finally {
                 binding.fab.isEnabled = true
             }
@@ -296,16 +304,16 @@ class MapActivity :
 
     private fun setupVehicleService() {
         val loggingInterceptor =
-            HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
+                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
 
         val client = OkHttpClient.Builder().addInterceptor(loggingInterceptor).build()
 
         val retrofit =
-            Retrofit.Builder()
-                .baseUrl(getBaseUrl())
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
+                Retrofit.Builder()
+                        .baseUrl(getBaseUrl())
+                        .client(client)
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build()
 
         vehicleService = retrofit.create(VehicleService::class.java)
     }
