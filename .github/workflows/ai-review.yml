@@ -32,7 +32,6 @@ jobs:
           
           echo "head_sha=$(echo "$PR_DATA" | jq -r '.head.sha')" >> $GITHUB_OUTPUT
           echo "base_sha=$(echo "$PR_DATA" | jq -r '.base.sha')" >> $GITHUB_OUTPUT
-          echo "diff_url=$(echo "$PR_DATA" | jq -r '.diff_url')" >> $GITHUB_OUTPUT
 
       - uses: actions/checkout@v3
         with:
@@ -42,14 +41,28 @@ jobs:
       - name: Get PR Changes
         id: changes
         run: |
-          PR_DIFF=$(curl -s "${{ steps.pr_details.outputs.diff_url }}")
+          PR_NUMBER="${{ github.event.issue.number }}"
+          PR_DIFF=$(curl -s -L \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3.diff" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}")
+          
           if [ -z "$PR_DIFF" ]; then
             echo "Error: Could not fetch PR diff"
             exit 1
           fi
+          
+          # Escapar caracteres especiales y preservar formato
+          PR_DIFF_ESCAPED=$(echo "$PR_DIFF" | sed 's/`/\\`/g' | sed 's/\$/\\$/g')
+          
           echo "DIFF<<EOF" >> $GITHUB_OUTPUT
-          echo "$PR_DIFF" >> $GITHUB_OUTPUT
+          echo "$PR_DIFF_ESCAPED" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Debug info
+          echo "Diff length: ${#PR_DIFF}"
+          echo "First 100 characters of diff:"
+          echo "$PR_DIFF" | head -c 100
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
