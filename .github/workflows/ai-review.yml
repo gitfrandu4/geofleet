@@ -1,0 +1,206 @@
+name: "OpenAI PR Review"
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  openai-pr-review:
+    if: ${{ github.event.issue.pull_request != null }}
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Comprobar comando en el comentario
+        id: parse_comment
+        run: |
+          echo "Comentario recibido: ${{ github.event.comment.body }}"
+          
+          COMENTARIO=$(echo "${{ github.event.comment.body }}" | tr '[:upper:]' '[:lower:]')
+
+          if [[ "$COMENTARIO" == *"/review"* ]]; then
+            echo "Comando /review detectado."
+            echo "COMMAND=review" >> $GITHUB_OUTPUT
+          elif [[ "$COMENTARIO" == *"/summary"* ]]; then
+            echo "Comando /summary detectado."
+            echo "COMMAND=summary" >> $GITHUB_OUTPUT
+          else
+            echo "No se encontró comando válido."
+            echo "COMMAND=none" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Obtener contenido del Pull Request
+        id: pr_info
+        run: |
+          PR_NUMBER="${{ github.event.issue.number }}"
+          PR_DATA=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}")
+          
+          PR_TITLE=$(echo "$PR_DATA" | jq -r '.title')
+          PR_BODY=$(echo "$PR_DATA" | jq -r '.body')
+          PR_AUTHOR=$(echo "$PR_DATA" | jq -r '.user.login')
+          PR_DIFF_URL=$(echo "$PR_DATA" | jq -r '.diff_url')
+          
+          # Obtener el diff
+          PR_DIFF=$(curl -s "$PR_DIFF_URL")
+          
+          echo "title=$PR_TITLE" >> $GITHUB_OUTPUT
+          echo "body=$PR_BODY" >> $GITHUB_OUTPUT
+          echo "author=$PR_AUTHOR" >> $GITHUB_OUTPUT
+          echo "diff<<EOF" >> $GITHUB_OUTPUT
+          echo "$PR_DIFF" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Comprobar si hay que ejecutar la llamada a OpenAI
+        if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
+        uses: actions/checkout@v3
+
+      - name: Instalar dependencias (Node.js)
+        if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Instalar dependencias del proyecto
+        if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
+        run: npm install axios
+
+      - name: Generar respuesta con OpenAI
+        if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
+        id: openai_call
+        run: |
+          cat << 'EOF' > openai_call.js
+          const axios = require('axios');
+          (async () => {
+            try {
+              const command = process.env.COMMAND;
+              const prTitle = process.env.PR_TITLE;
+              const prBody = process.env.PR_BODY;
+              const prAuthor = process.env.PR_AUTHOR;
+              const prDiff = process.env.PR_DIFF;
+
+              let prompt = "";
+              if (command === "review") {
+                prompt = `Eres un experto desarrollador Android con amplia experiencia en Kotlin y las mejores prácticas de desarrollo móvil.
+                Realiza una revisión detallada del siguiente Pull Request:
+
+                Título: ${prTitle}
+                Autor: ${prAuthor}
+                Descripción: ${prBody}
+                Cambios: ${prDiff}
+
+                Por favor, proporciona una revisión estructurada que incluya:
+
+                ## 🎯 Resumen General
+                - Objetivo principal de los cambios
+                - Impacto en la aplicación
+
+                ## 💡 Aspectos Positivos
+                - Buenas prácticas implementadas
+                - Patrones de diseño utilizados correctamente
+                - Optimizaciones destacables
+
+                ## 🚨 Aspectos a Mejorar
+                - Problemas potenciales de rendimiento
+                - Posibles memory leaks
+                - Manejo de ciclos de vida
+                - Gestión de recursos
+                - Seguridad y validaciones
+
+                ## 📝 Recomendaciones
+                - Sugerencias específicas de mejora
+                - Ejemplos de código cuando sea relevante
+                - Referencias a la documentación oficial
+
+                ## ✅ Checklist de Verificación
+                - [ ] Manejo correcto de corrutinas y threading
+                - [ ] Implementación adecuada de patrones MVVM/Clean Architecture
+                - [ ] Gestión apropiada del estado de la UI
+                - [ ] Manejo de errores y casos extremos
+                - [ ] Código testeable y mantenible
+
+                Por favor, sé específico y constructivo en tus comentarios.`;
+              } else if (command === "summary") {
+                prompt = `Eres un experto desarrollador Android que genera resúmenes técnicos concisos y educativos.
+                Analiza el siguiente Pull Request y genera un resumen enfocado en el aprendizaje:
+
+                Título: ${prTitle}
+                Autor: ${prAuthor}
+                Descripción: ${prBody}
+                Cambios: ${prDiff}
+
+                Por favor, estructura el resumen de la siguiente manera:
+
+                ## 🔍 Descripción Técnica
+                - Componentes Android/Kotlin modificados
+                - Cambios en la arquitectura
+                - Nuevas funcionalidades implementadas
+
+                ## 📚 Conceptos Clave
+                - Patrones de diseño utilizados
+                - APIs de Android relevantes
+                - Bibliotecas y frameworks implementados
+
+                ## 💡 Puntos de Aprendizaje
+                - Mejores prácticas demostradas
+                - Técnicas de implementación interesantes
+                - Optimizaciones notables
+
+                ## 📖 Referencias y Recursos
+                - Enlaces a documentación oficial relevante
+                - Guías de mejores prácticas aplicables
+                - Recursos de aprendizaje relacionados
+
+                Enfócate en aspectos educativos y proporciona contexto para entender mejor las decisiones técnicas tomadas.`;
+              }
+
+              const response = await axios.post(
+                "https://api.openai.com/v1/chat/completions",
+                {
+                  model: "gpt-4",
+                  messages: [
+                    { role: "system", content: "Eres un experto desarrollador Android especializado en Kotlin, arquitectura limpia y mejores prácticas de desarrollo móvil."},
+                    { role: "user", content: prompt }
+                  ],
+                  temperature: 0.2
+                },
+                {
+                  headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+                  }
+                }
+              );
+              
+              const generatedText = response.data.choices[0].message.content;
+              console.log("GENERATED_TEXT::" + generatedText.replace(/\r?\n/g, '\\n'));
+            } catch (error) {
+              console.error(error);
+              process.exit(1);
+            }
+          })();
+          EOF
+
+          OUTPUT=$(COMMAND=${{ steps.parse_comment.outputs.COMMAND }} \
+                   PR_TITLE="${{ steps.pr_info.outputs.title }}" \
+                   PR_BODY="${{ steps.pr_info.outputs.body }}" \
+                   PR_AUTHOR="${{ steps.pr_info.outputs.author }}" \
+                   PR_DIFF="${{ steps.pr_info.outputs.diff }}" \
+                   OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+                   node openai_call.js
+                 )
+
+          GENERATED_TEXT=$(echo "$OUTPUT" | sed -n 's/^GENERATED_TEXT:://p')
+          echo "review_or_summary=$GENERATED_TEXT" >> $GITHUB_OUTPUT
+
+      - name: Comentar en el Pull Request la respuesta
+        if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
+        run: |
+          PR_NUMBER="${{ github.event.issue.number }}"
+          BODY="${{ steps.openai_call.outputs.review_or_summary }}"
+
+          curl -s -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"body": "'"${BODY//\"/\\\"}"'"}' \
+            "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
