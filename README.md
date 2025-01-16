@@ -212,3 +212,45 @@ API_TOKEN=your_api_token
 - Feedback visual durante operaciones
 - Manejo de errores con opciones de reintento
 - Soporte para gestos de navegación modernos
+
+## CI/CD y Automatización 🤖
+
+### Revisión Automática de Código
+
+GeoFleet utiliza GitHub Actions con GPT-4 para revisiones de código automáticas:
+
+![AI Review Demo](docs/images/ai_review_demo.png)
+
+#### Comandos Disponibles
+
+En cualquier Pull Request:
+
+- `/review` - Solicita una revisión técnica detallada
+- `/summary` - Genera un resumen técnico educativo
+
+#### Ejemplo de Revisión
+
+![AI Summary Demo](docs/images/ai_summary_demo.png)
+
+## Contribución 🤝
+
+1. Crea un fork del repositorio
+2. Crea una rama para tu feature: `git checkout -b feature/amazing-feature`
+3. Commit tus cambios: `git commit -m 'feat: add amazing feature'`
+4. Push a la rama: `git push origin feature/amazing-feature`
+5. Abre un Pull Request
+
+
+### Configuración Inicial
+
+1. **Secrets de GitHub**
+   ```bash
+   MAPS_API_KEY=<tu-api-key-de-google-maps>
+   OPENAI_API_KEY=<tu-api-key-de-openai>
+   ```
+
+2. **local.properties**
+   - Usar `local.properties.example` como template
+   - Configurar SDK path y API keys
+
+Para más detalles, consulta [CI/CD y Control de Calidad](docs/6_ci_cd.md)
