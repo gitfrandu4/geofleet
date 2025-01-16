@@ -96,10 +96,56 @@ Los resúmenes técnicos incluyen:
 1. **Secrets de GitHub**:
    - `OPENAI_API_KEY`: Para el AI Code Review
    - `MAPS_API_KEY`: Para los tests de integración
+   - `GOOGLE_SERVICES_JSON`: Contenido del archivo google-services.json en base64
+     ```bash
+     # Generar el contenido del secret
+     cat app/google-services.json | base64
+     ```
 
 2. **Permisos de Workflow**:
    - Habilitar "Read and write permissions"
    - Permitir "Allow GitHub Actions to create and approve pull requests"
+
+### Configuración de Secrets
+
+1. Ve a Settings > Secrets and variables > Actions en tu repositorio
+2. Crea los siguientes secrets:
+
+#### GOOGLE_SERVICES_JSON
+Este secret debe contener el archivo google-services.json codificado en base64.
+
+Para generarlo:
+```bash
+# En macOS/Linux:
+base64 -i app/google-services.json
+
+# En Windows (PowerShell):
+[Convert]::ToBase64String([System.IO.File]::ReadAllBytes("app/google-services.json"))
+```
+
+Verifica que:
+- No hay saltos de línea en el contenido base64
+- El contenido comienza con `ew` (que es `{` en base64)
+- El archivo original es un JSON válido
+
+#### Otros Secrets Requeridos
+```
+OPENAI_API_KEY=<tu-api-key-de-openai>
+MAPS_API_KEY=<tu-api-key-de-google-maps>
+```
+
+### Verificación de la Configuración
+
+1. Después de configurar los secrets, haz un push o crea un PR
+2. Ve a la pestaña "Actions"
+3. Verifica que el workflow muestre:
+   - ✓ google-services.json created successfully
+   - ✓ google-services.json is valid JSON
+
+Si hay errores:
+1. Verifica que el contenido base64 es correcto
+2. Asegúrate de que el archivo JSON original es válido
+3. Comprueba que no hay caracteres extra o saltos de línea en el secret
 
 ## Mejores Prácticas
 

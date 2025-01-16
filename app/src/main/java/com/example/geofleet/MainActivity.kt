@@ -1,7 +1,10 @@
 package com.example.geofleet
 
-import android.os.Bundle
 import android.content.Intent
+import android.os.Bundle
+import android.util.Log
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
@@ -14,13 +17,10 @@ import androidx.navigation.ui.setupWithNavController
 import com.example.geofleet.databinding.ActivityMainBinding
 import com.example.geofleet.ui.MapActivity
 import com.example.geofleet.ui.components.ProfileImageView
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.android.gms.common.GoogleApiAvailability
-import com.google.android.gms.common.ConnectionResult
-import android.widget.Toast
-import android.util.Log
-import android.widget.TextView
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -53,16 +53,19 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Handle back press
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    binding.drawerLayout.closeDrawer(GravityCompat.START)
-                } else {
-                    isEnabled = false
-                    onBackPressedDispatcher.onBackPressed()
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                        binding.drawerLayout.closeDrawer(GravityCompat.START)
+                    } else {
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
+                    }
                 }
             }
-        })
+        )
 
         // Initialize Firebase
         firestore = FirebaseFirestore.getInstance()
@@ -74,7 +77,7 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
-        
+
         appBarConfiguration = AppBarConfiguration(
             setOf(R.id.nav_vehicle_positions, R.id.nav_fleet, R.id.nav_profile),
             binding.drawerLayout
@@ -123,9 +126,7 @@ class MainActivity : AppCompatActivity() {
 
         if (resultCode != ConnectionResult.SUCCESS) {
             if (googleApiAvailability.isUserResolvableError(resultCode)) {
-                googleApiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST) { 
-                    finish() 
-                }?.show()
+                googleApiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST) { finish() }?.show()
             } else {
                 Toast.makeText(this, "This device is not supported", Toast.LENGTH_LONG).show()
             }
@@ -144,7 +145,7 @@ class MainActivity : AppCompatActivity() {
             val headerView = binding.navigationView.getHeaderView(0)
             // Set user email
             headerView.findViewById<TextView>(R.id.nav_header_subtitle)?.text = user.email
-            
+
             // Initialize profile image view
             headerView.findViewById<ProfileImageView>(R.id.nav_header_image)?.let { profileImageView ->
                 Log.d(TAG, "Starting profile image listener")

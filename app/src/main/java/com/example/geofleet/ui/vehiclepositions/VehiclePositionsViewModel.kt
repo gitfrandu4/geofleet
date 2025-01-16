@@ -33,4 +33,4 @@ class VehiclePositionsViewModel : ViewModel() {
             }
         }
     }
-} 
+}

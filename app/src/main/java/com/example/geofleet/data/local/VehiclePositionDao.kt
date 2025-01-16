@@ -18,7 +18,7 @@ interface VehiclePositionDao {
     suspend fun getPositionsSnapshot(): List<VehiclePositionEntity>
 
     @Query(
-            "SELECT * FROM vehicle_positions WHERE vehicleId = :vehicleId ORDER BY timestamp DESC LIMIT 1"
+        "SELECT * FROM vehicle_positions WHERE vehicleId = :vehicleId ORDER BY timestamp DESC LIMIT 1"
     )
     suspend fun getLastPosition(vehicleId: String): VehiclePositionEntity?
 

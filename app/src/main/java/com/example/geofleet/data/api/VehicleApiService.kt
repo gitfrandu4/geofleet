@@ -13,4 +13,4 @@ interface VehicleApiService {
         @Path("id") id: String,
         @Header("Authorization") token: String = "Bearer ${ConfigManager.getApiToken()}"
     ): Response<VehiclePosition>
-} 
+}

@@ -215,6 +215,33 @@ API_TOKEN=your_api_token
 
 ## CI/CD y Automatización 🤖
 
+### Android CI Workflow
+
+GeoFleet utiliza GitHub Actions para automatizar el proceso de integración continua:
+
+![Android CI Workflow](docs/images/android_ci_workflow.png)
+
+El workflow se ejecuta automáticamente en cada push y pull request, realizando las siguientes tareas:
+
+1. **Configuración del Entorno** ⚙️
+   - Configura JDK 17
+   - Configura Android SDK
+   - Genera `local.properties`
+
+2. **Análisis de Código** 🔍
+   - Ejecuta ktlint para verificar el estilo
+   - Realiza análisis con Android Lint
+   - Ejecuta tests unitarios
+
+3. **Artefactos** 📊
+   - Genera reportes de lint
+   - Publica resultados de tests
+
+Para ejecutar el workflow:
+1. Realiza un push a la rama `main`
+2. Crea un Pull Request
+3. Revisa los resultados en la pestaña "Actions"
+
 ### Revisión Automática de Código
 
 GeoFleet utiliza GitHub Actions con GPT-4 para revisiones de código automáticas:

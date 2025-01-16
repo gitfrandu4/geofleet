@@ -37,4 +37,4 @@ data class UserEntity(
             birthdate = user.birthdate
         )
     }
-} 
+}

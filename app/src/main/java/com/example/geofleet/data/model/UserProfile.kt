@@ -12,4 +12,4 @@ data class UserProfile(
     companion object {
         const val COLLECTION_NAME = "users"
     }
-} 
+}

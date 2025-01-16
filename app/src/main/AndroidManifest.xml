@@ -72,13 +72,13 @@
             android:label="@string/vehicle_positions" />
 
         <!-- Configuración del servicio de Firebase Cloud Messaging -->
-        <service
+        <!-- <service
             android:name=".service.MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
-        </service>
+        </service> -->
 
         <!-- FileProvider para manejo de fotos -->
         <provider
