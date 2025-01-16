@@ -1,0 +1,122 @@
+name: AI PR Description Generator
+
+on:
+  pull_request:
+    types: [opened, reopened]
+  issue_comment:
+    types: [created]
+
+jobs:
+  generate-description:
+    if: |
+      (github.event_name == 'pull_request' && github.event.pull_request.body == '') ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/describe'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get PR number
+        id: pr
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          else
+            echo "PR_NUMBER=$(jq --raw-output .issue.number "$GITHUB_EVENT_PATH")" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get PR changes
+        id: changes
+        run: |
+          PR_DIFF_URL=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ steps.pr.outputs.PR_NUMBER }}" \
+            | jq -r '.diff_url')
+          
+          PR_DIFF=$(curl -s "$PR_DIFF_URL")
+          echo "DIFF<<EOF" >> $GITHUB_OUTPUT
+          echo "$PR_DIFF" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install openai
+
+      - name: Generate PR Description
+        uses: actions/github-script@v6
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PR_DIFF: ${{ steps.changes.outputs.DIFF }}
+        with:
+          script: |
+            const { OpenAI } = require('openai');
+            const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+            const prompt = `Como experto desarrollador Android, analiza estos cambios y genera una descripción detallada del Pull Request:
+
+            Cambios:
+            ${process.env.PR_DIFF}
+
+            Genera una descripción estructurada que incluya:
+
+            ## 📝 Descripción
+            [Breve descripción del propósito y contexto de los cambios]
+
+            ## 🔄 Cambios Realizados
+            [Lista detallada de los cambios principales]
+
+            ## 🧪 Testing
+            [Instrucciones de cómo probar los cambios]
+
+            ## 📱 Screenshots
+            [Placeholder para screenshots si son necesarios]
+
+            ## ✅ Checklist
+            - [ ] He seguido las guías de estilo del proyecto
+            - [ ] He realizado pruebas locales
+            - [ ] He documentado los cambios necesarios
+            - [ ] He actualizado la documentación si es necesario
+
+            Sé específico y detallado, enfocándote en el impacto y valor de los cambios.`;
+
+            const completion = await openai.chat.completions.create({
+              model: "gpt-4",
+              messages: [
+                { 
+                  role: "system", 
+                  content: "Eres un experto desarrollador Android especializado en Kotlin, arquitectura limpia y mejores prácticas de desarrollo móvil."
+                },
+                { role: "user", content: prompt }
+              ],
+              temperature: 0.2
+            });
+
+            const description = completion.choices[0].message.content;
+            
+            // Si es un PR nuevo o está vacío, actualiza la descripción
+            if ('${{ github.event_name }}' === 'pull_request') {
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: ${{ steps.pr.outputs.PR_NUMBER }},
+                body: description
+              });
+            } else {
+              // Si es un comando /describe, comenta la descripción
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: ${{ steps.pr.outputs.PR_NUMBER }},
+                body: description
+              });
+            } 
