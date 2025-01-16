@@ -2,10 +2,16 @@
     <string name="app_name">GeoFleet</string>
 
     <!-- Navigation -->
-    <string name="vehicle_positions">Flota</string>
+    <string name="vehicle_positions_title">Flota</string>
+    <string name="vehicle_positions_map">Mapa</string>
     <string name="fleet">Flota</string>
     <string name="profile">Perfil</string>
     <string name="menu">Menú</string>
+
+    <!-- Search -->
+    <string name="search_vehicles">Buscar vehículos…</string>
+    <string name="vehicle_format">Vehículo %s</string>
+    <string name="total_vehicles">Total: %d</string>
 
     <!-- Actions -->
     <string name="action_search">Buscar</string>
@@ -59,6 +65,9 @@
     <string name="password_required">La contraseña es requerida</string>
     <string name="login_success">Inicio de sesión exitoso</string>
     <string name="email_sent">Correo enviado</string>
+    <string name="welcome_message">¡Bienvenido/a, %1$s!</string>
+    <string name="continue_text">Continuar</string>
+    <string name="user">Usuario</string>
 
     <!-- Register Screen -->
     <string name="register_title">Registro</string>
@@ -90,4 +99,11 @@
 
     <!-- Map Markers -->
     <string name="vehicle_marker">Marcador de vehículo</string>
+    <string name="map">Mapa</string>
+
+    <!-- Fleet Management -->
+    <string name="vehicle_image">Imagen del vehículo</string>
+    <string name="no_vehicles_icon">Icono de sin vehículos</string>
+    <string name="no_vehicles_description">No se encontraron vehículos en la flota</string>
+    <string name="last_position_format">Última posición: %1$.4f, %2$.4f</string>
 </resources>

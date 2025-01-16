@@ -10,5 +10,5 @@ interface VehicleService {
     suspend fun getVehiclePosition(
         @Path("id") vehicleId: String,
         @Header("Authorization") token: String
-    ): VehiclePosition
+    ): VehiclePosition?
 }

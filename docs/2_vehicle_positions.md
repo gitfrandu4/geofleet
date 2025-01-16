@@ -1,17 +1,20 @@
-# Vehicle Positions Feature Documentation
+# Documentación de la Funcionalidad de Posiciones de Vehículos
 
-## Overview
-The vehicle positions feature displays real-time location data for vehicles in a scrollable list format. It implements a local caching mechanism using Room database and provides pull-to-refresh functionality for updating the data.
+## Descripción General
+La funcionalidad de posiciones de vehículos muestra datos de ubicación en tiempo real en dos formatos:
+1. Una vista de mapa que muestra las posiciones actuales de todos los vehículos
+2. Una vista de lista que muestra información detallada de cada vehículo con capacidades de búsqueda y filtrado
 
-## Configuration
-The feature uses an external configuration file (`assets/config.properties`) to manage vehicle IDs:
+## Configuración
+La funcionalidad utiliza un archivo de configuración externo (`assets/config.properties`) para gestionar los IDs de vehículos:
 
 ```properties
-# Vehicle Configuration
-vehicle.ids=vehicle1,vehicle2,vehicle3
+# Configuración de Vehículos
+vehicle.ids=1509,1511,1512,1528,1793
+API_TOKEN=your_api_token_here
+BASE_URL=https://api.example.com/
 ```
-
-Configuration is managed through the `ConfigurationReader` utility:
+La configuración se gestiona a través de la utilidad `ConfigurationReader`:
 ```kotlin
 object ConfigurationReader {
     fun init(context: Context)
@@ -19,89 +22,130 @@ object ConfigurationReader {
 }
 ```
 
-## Components
+## Componentes
 
-### Database
-- **Entity**: `VehiclePositionEntity`
+### Base de Datos
+- **Entidad**: `VehiclePositionEntity`
   ```kotlin
   @Entity(tableName = "vehicle_positions")
   data class VehiclePositionEntity(
       @PrimaryKey val vehicleId: String,
-      val latitude: String,
-      val longitude: String,
+      val latitude: Double,
+      val longitude: Double,
       val timestamp: Long = System.currentTimeMillis()
   )
   ```
 
-- **DAO**: `VehiclePositionDao`
+### API
+- **Servicio**: `VehicleService`
   ```kotlin
-  @Dao
-  interface VehiclePositionDao {
-      @Insert(onConflict = OnConflictStrategy.REPLACE)
-      suspend fun insertAll(positions: List<VehiclePositionEntity>)
-
-      @Query("SELECT * FROM vehicle_positions ORDER BY timestamp DESC")
-      fun getAllPositions(): Flow<List<VehiclePositionEntity>>
+  interface VehicleService {
+      @GET("vehicle/{id}")
+      suspend fun getVehiclePosition(
+          @Path("id") vehicleId: String,
+          @Header("Authorization") token: String
+      ): VehiclePosition?
   }
   ```
 
-### UI Components
+### Vistas
 
-#### Layout Files
-1. **Activity Layout** (`activity_vehicle_positions.xml`):
-   - CoordinatorLayout with AppBarLayout
-   - MaterialToolbar with refresh action
-   - SwipeRefreshLayout containing RecyclerView
+#### Vista de Mapa (`VehiclePositionsFragment`)
+- Muestra vehículos en un mapa de Google
+- Actualiza automáticamente las posiciones cuando:
+  - Se crea el fragmento
+  - El mapa está listo
+  - El usuario regresa al fragmento
+  - El usuario actualiza manualmente
+- Utiliza marcadores personalizados para vehículos:
+  - Vehículos regulares: Color de marcador predeterminado
+  - Vehículo seleccionado: Marcador verde (cuando se abre desde la vista de flota)
+- Centra y hace zoom en el vehículo seleccionado cuando se abre desde la lista
+- Muestra todos los vehículos en vista cuando se abre normalmente
 
-2. **List Item Layout** (`item_vehicle_position.xml`):
-   - MaterialCardView containing:
-     - Vehicle ID
-     - Position coordinates
-     - Timestamp
+#### Vista de Flota (`FleetFragment`)
+- Muestra una lista de todos los vehículos con:
+  - Imagen/icono del vehículo
+  - ID del vehículo (formato localizado: "Vehículo X")
+  - Última posición conocida
+  - Acciones rápidas:
+    - Botón de perfil (para futuros detalles/configuración del vehículo)
+    - Botón de mapa (abre el mapa centrado en el vehículo con marcador resaltado)
+- Características:
+  - Funcionalidad de búsqueda para filtrar vehículos
+  - Contador total de vehículos en un círculo flotante
+  - Funcionalidad de actualización por deslizamiento
+  - Vista de estado vacío cuando no hay vehículos disponibles
+  - Manejo de errores con opciones de reintento
 
-### Activity Implementation
-`VehiclePositionsActivity` manages the UI and data flow:
+### Flujo de Datos
+1. **Carga Inicial**:
+   - Cargar IDs de vehículos desde la configuración
+   - Obtener posiciones desde la API
+   - Almacenar en base de datos Room
+   - Actualizar Firestore con posición actual e historial
+   - Actualizar UI
 
-```kotlin
-class VehiclePositionsActivity : AppCompatActivity() {
-    // Key components
-    private lateinit var binding: ActivityVehiclePositionsBinding
-    private lateinit var vehicleRepository: VehicleRepository
-    private lateinit var database: AppDatabase
-    private val adapter = VehiclePositionAdapter()
+2. **Flujo de Actualización**:
+   - Cancelar cualquier trabajo de actualización en curso
+   - Obtener nuevas posiciones para todos los vehículos
+   - Actualizar almacenamiento local y en la nube
+   - Actualizar UI
+   - Actualizar contador total de vehículos
 
-    // Features
-    - RecyclerView with LinearLayoutManager
-    - SwipeRefreshLayout for pull-to-refresh
-    - Toolbar with refresh action
-    - Real-time position updates using Flow
-    - Local caching in Room database
-}
-```
+3. **Flujo de Búsqueda**:
+   - Usuario ingresa texto de búsqueda
+   - La lista se filtra en tiempo real
+   - El contador total se actualiza para reflejar los resultados filtrados
+   - La lista original se conserva para reinicio
 
-### Adapter Implementation
-`VehiclePositionAdapter` handles the display of individual vehicle positions:
-- Extends ListAdapter for efficient list updates
-- Uses DiffUtil for optimized item updates
-- Displays vehicle ID, coordinates, and formatted timestamp
+4. **Manejo de Errores**:
+   - Los errores de red muestran opción de reintento
+   - Los vehículos faltantes se registran en el log
+   - Los errores de API se manejan correctamente
+   - Las cancelaciones de trabajos se gestionan adecuadamente
 
-## Data Flow
-1. Initial Load:
-   - Activity observes database for positions
-   - Triggers initial refresh to fetch latest data
+### Integración con Firebase
+- Cada vehículo tiene:
+  - Documento de posición actual
+  - Colección de historial de posiciones
+  ```json
+  vehicles/
+    ├── {vehicle_id}/
+    │   ├── current_position/
+    │   │   ├── latitude: Double
+    │   │   ├── longitude: Double
+    │   │   └── timestamp: Long
+    │   └── coordinates_history/
+    │       └── {position_id}/
+    │           ├── coordinates/
+    │           │   ├── latitude: Double
+    │           │   └── longitude: Double
+    │           ├── timestamp: Long
+    │           └── created_at: Long
+  ```
 
-2. Refresh Operation:
-   - User triggers refresh (pull-to-refresh or button)
-   - Fetches new positions from repository
-   - Updates local database
-   - UI automatically updates through Flow observation
+## Uso
+1. **Ver Todos los Vehículos**:
+   - Abrir la sección de Flota desde el menú de navegación
+   - Todos los vehículos se muestran en una lista desplazable
+   - Usar la barra de búsqueda para filtrar vehículos
+   - Ver el contador total de vehículos en el círculo flotante
+   - Deslizar hacia abajo para actualizar la lista
 
-3. Data Persistence:
-   - All positions are cached in Room database
-   - UI always shows data from local database
-   - Ensures offline availability
+2. **Ver Vehículo en el Mapa**:
+   - Hacer clic en el botón de mapa en cualquier tarjeta de vehículo
+   - El mapa se abrirá centrado en ese vehículo
+   - El marcador del vehículo seleccionado se resaltará en verde
+   - Otros vehículos serán visibles con marcadores predeterminados
+   - Usar el FAB para actualizar todas las posiciones
 
-## Dependencies
+3. **Actualizar Posiciones**:
+   - Deslizar para actualizar en la vista de flota
+   - Hacer clic en el FAB en la vista de mapa
+   - Las posiciones se actualizan automáticamente al regresar a cualquier vista
+
+## Dependencias
 ```gradle
 // Room
 implementation "androidx.room:room-runtime:2.6.1"
@@ -113,13 +157,19 @@ implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
 
 // Lifecycle
 implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
+
+// Material Design
+implementation 'com.google.android.material:material:1.11.0'
 ```
 
-## Usage
-1. Launch `VehiclePositionsActivity`
-2. Positions are automatically loaded and displayed
-3. Pull down to refresh or use toolbar refresh button
-4. Positions are cached locally for offline access
+## Manejo de Errores
+- Los errores de red son capturados y registrados
+- La UI permanece receptiva durante la actualización
+- El caché local asegura la disponibilidad de datos
+- SwipeRefreshLayout indica el estado de actualización
+- Los trabajos de corrutinas se gestionan adecuadamente para prevenir fugas de memoria
+- Registro detallado para depuración y monitoreo
+
 
 ## Error Handling
 - Network errors are caught and logged

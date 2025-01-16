@@ -43,6 +43,13 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
     private var isLoading = false
     private val TAG = "VehiclePositionsFragment"
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate: Initializing ViewModel")
+        // Force ViewModel initialization
+        viewModel
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -58,46 +65,70 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
         super.onViewCreated(view, savedInstanceState)
         Log.d(TAG, "onViewCreated started")
 
+        setupObservers()
+        setupMap()
+        setupFab()
+    }
+
+    private fun setupMap() {
+        Log.d(TAG, "Setting up map")
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+        createCustomMarkerBitmap()
+    }
 
+    private fun setupFab() {
         binding.fab.let {
-            Log.d(TAG, "FAB found in binding")
+            Log.d(TAG, "Setting up FAB")
             it.visibility = View.VISIBLE
             it.setOnClickListener { _ ->
-                Log.d(TAG, "FAB clicked")
+                Log.d(TAG, "🔄 FAB clicked - Starting manual refresh")
+                Log.d(TAG, "Current loading state: $isLoading")
                 if (!isLoading) {
+                    Log.d(TAG, "✅ Initiating vehicle positions refresh")
                     refreshVehiclePositions()
+                } else {
+                    Log.d(TAG, "⚠️ Refresh already in progress, skipping")
                 }
             }
         }
-
-        createCustomMarkerBitmap()
-        setupObservers()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 
     private fun setupObservers() {
+        Log.d(TAG, "Setting up observers")
         viewLifecycleOwner.lifecycleScope.launch {
+            Log.d(TAG, "Launching observers coroutine")
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                Log.d(TAG, "Observers in STARTED state")
+
                 launch {
+                    Log.d(TAG, "Collecting isLoading state")
                     viewModel.isLoading.collect { loading ->
+                        Log.d(TAG, "Loading state changed: $loading")
                         isLoading = loading
-                        _binding?.fab?.isEnabled = !loading
+                        binding.fab?.isEnabled = !loading
                         if (loading) {
                             showLoadingMessage()
                         }
                     }
                 }
 
-                launch { viewModel.error.collect { error -> error?.let { handleError(it) } } }
+                launch {
+                    Log.d(TAG, "Collecting error state")
+                    viewModel.error.collect { error ->
+                        error?.let {
+                            Log.e(TAG, "Error received", it)
+                            handleError(it)
+                        }
+                    }
+                }
 
                 launch {
-                    viewModel.vehiclePositions.collect { positions -> updateMapMarkers(positions) }
+                    Log.d(TAG, "Collecting vehicle positions")
+                    viewModel.vehiclePositions.collect { positions ->
+                        Log.d(TAG, "Received ${positions.size} positions")
+                        updateMapMarkers(positions)
+                    }
                 }
             }
         }
@@ -123,10 +154,13 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun refreshVehiclePositions() {
+        Log.d(TAG, "🚗 Requesting vehicle positions refresh")
+        Log.d(TAG, "Loading state before refresh: $isLoading")
         viewModel.refreshVehiclePositions()
     }
 
     override fun onMapReady(map: GoogleMap) {
+        Log.d(TAG, "onMapReady: Configurando mapa")
         googleMap = map
 
         try {
@@ -138,15 +172,17 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
 
             map.moveCamera(
                 CameraUpdateFactory.newLatLngZoom(
-                    LatLng(40.4168, -3.7038), // Madrid coordinates
-                    6f // Zoom level
+                    LatLng(28.4697, -16.2548), // Tenerife coordinates
+                    9f // Zoom level
                 )
             )
+
+            // Initial load after map is ready
+            Log.d(TAG, "onMapReady: Iniciando carga inicial")
+            refreshVehiclePositions()
         } catch (e: Exception) {
             Log.e(TAG, "Error setting up map: ${e.message}", e)
         }
-
-        refreshVehiclePositions()
     }
 
     private fun createCustomMarkerBitmap() {
@@ -233,6 +269,22 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume called")
+        if (googleMap != null && !isLoading) {
+            Log.d(TAG, "onResume: Refreshing vehicle positions")
+            refreshVehiclePositions()
+        } else {
+            Log.d(TAG, "onResume: Skipping refresh - map not ready or loading in progress")
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {

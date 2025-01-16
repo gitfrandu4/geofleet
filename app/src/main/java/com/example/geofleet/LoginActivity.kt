@@ -10,7 +10,6 @@ import com.example.geofleet.data.local.AppDatabase
 import com.example.geofleet.data.local.VehiclePositionEntity
 import com.example.geofleet.data.repository.VehicleRepository
 import com.example.geofleet.databinding.ActivityLoginBinding
-import com.example.geofleet.ui.MapActivity
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -77,29 +76,24 @@ class LoginActivity : AppCompatActivity() {
     private fun loginUser(email: String, password: String) {
         showLoading(true)
         Log.d("LoginActivity", "Attempting login with email: $email")
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    Log.d("LoginActivity", "Firebase login successful")
-                    fetchInitialData()
-                } else {
-                    Log.e("LoginActivity", "Firebase login failed", task.exception)
-                    showLoading(false)
-                    Snackbar.make(binding.root, R.string.login_error, Snackbar.LENGTH_SHORT).show()
-                }
+        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this) { task ->
+            if (task.isSuccessful) {
+                Log.d("LoginActivity", "Firebase login successful")
+                fetchInitialData()
+            } else {
+                Log.e("LoginActivity", "Firebase login failed", task.exception)
+                showLoading(false)
+                Snackbar.make(binding.root, R.string.login_error, Snackbar.LENGTH_SHORT).show()
             }
+        }
     }
 
     private fun getVehicleIdsFromConfig(): List<String> {
         Log.d("LoginActivity", "Reading vehicle IDs from config")
         val properties = Properties()
-        assets.open("config.properties").use {
-            properties.load(it)
-        }
-        val ids = properties.getProperty("vehicle.ids")
-            ?.split(",")
-            ?.map { it.trim() }
-            ?: emptyList()
+        assets.open("config.properties").use { properties.load(it) }
+        val ids =
+            properties.getProperty("vehicle.ids")?.split(",")?.map { it.trim() } ?: emptyList()
         Log.d("LoginActivity", "Found ${ids.size} vehicle IDs")
         return ids
     }
@@ -107,6 +101,7 @@ class LoginActivity : AppCompatActivity() {
     private fun fetchInitialData() {
         lifecycleScope.launch {
             try {
+                showLoading(true)
                 Log.d("LoginActivity", "Starting initial data fetch")
                 val vehicleIds = getVehicleIdsFromConfig()
                 Log.d("LoginActivity", "Got vehicle IDs: $vehicleIds")
@@ -114,23 +109,32 @@ class LoginActivity : AppCompatActivity() {
                 val positions = repository.getVehiclePositions(vehicleIds)
                 Log.d("LoginActivity", "Got positions: ${positions.size}")
 
-                val entities = positions.mapNotNull { (id, position) ->
-                    position?.let {
-                        try {
-                            VehiclePositionEntity(
-                                vehicleId = id,
-                                latitude = it.latitude.toDouble(),
-                                longitude = it.longitude.toDouble(),
-                                timestamp = System.currentTimeMillis()
-                            ).also { entity ->
-                                Log.d("LoginActivity", "Created entity for vehicle $id: lat=${entity.latitude}, lon=${entity.longitude}")
+                val entities =
+                    positions.mapNotNull { (id, position) ->
+                        position?.let {
+                            try {
+                                VehiclePositionEntity(
+                                    vehicleId = id,
+                                    latitude = it.latitude.toDouble(),
+                                    longitude = it.longitude.toDouble(),
+                                    timestamp = System.currentTimeMillis()
+                                )
+                                    .also { entity ->
+                                        Log.d(
+                                            "LoginActivity",
+                                            "Created entity for vehicle $id: lat=${entity.latitude}, lon=${entity.longitude}"
+                                        )
+                                    }
+                            } catch (e: Exception) {
+                                Log.e(
+                                    "LoginActivity",
+                                    "Error converting position for vehicle $id",
+                                    e
+                                )
+                                null
                             }
-                        } catch (e: Exception) {
-                            Log.e("LoginActivity", "Error converting position for vehicle $id", e)
-                            null
                         }
                     }
-                }
                 Log.d("LoginActivity", "Created ${entities.size} entities")
 
                 database.vehiclePositionDao().insertAll(entities)
@@ -138,38 +142,38 @@ class LoginActivity : AppCompatActivity() {
 
                 showLoading(false)
                 Log.d("LoginActivity", "Login process completed successfully")
-                Snackbar.make(binding.root, R.string.login_success, Snackbar.LENGTH_SHORT)
-                    .addCallback(object : Snackbar.Callback() {
-                        override fun onDismissed(snackbar: Snackbar, event: Int) {
-                            startActivity(Intent(this@LoginActivity, MapActivity::class.java))
-                            finish()
-                        }
-                    })
-                    .show()
+
+                // Redirect to MainActivity
+                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                finish()
             } catch (e: Exception) {
                 Log.e("LoginActivity", "Error in fetchInitialData", e)
                 showLoading(false)
-                val errorMessage = when {
-                    e.message?.contains("HTTP") == true -> getString(R.string.api_error)
-                    e.message?.contains("database") == true -> getString(R.string.database_error)
-                    else -> getString(R.string.login_error)
-                }
-                Snackbar.make(binding.root, errorMessage, Snackbar.LENGTH_SHORT).show()
+                val errorMessage =
+                    when {
+                        e.message?.contains("HTTP") == true -> getString(R.string.api_error)
+                        e.message?.contains("database") == true ->
+                            getString(R.string.database_error)
+                        else -> getString(R.string.login_error)
+                    }
+                Snackbar.make(binding.root, errorMessage, Snackbar.LENGTH_SHORT)
+                    .setBackgroundTint(getColor(R.color.error))
+                    .setTextColor(getColor(R.color.on_error_container))
+                    .show()
             }
         }
     }
 
     private fun resetPassword(email: String) {
         showLoading(true)
-        auth.sendPasswordResetEmail(email)
-            .addOnCompleteListener { task ->
-                showLoading(false)
-                if (task.isSuccessful) {
-                    Snackbar.make(binding.root, R.string.email_sent, Snackbar.LENGTH_SHORT).show()
-                } else {
-                    Snackbar.make(binding.root, R.string.login_error, Snackbar.LENGTH_SHORT).show()
-                }
+        auth.sendPasswordResetEmail(email).addOnCompleteListener { task ->
+            showLoading(false)
+            if (task.isSuccessful) {
+                Snackbar.make(binding.root, R.string.email_sent, Snackbar.LENGTH_SHORT).show()
+            } else {
+                Snackbar.make(binding.root, R.string.login_error, Snackbar.LENGTH_SHORT).show()
             }
+        }
     }
 
     private fun showLoading(show: Boolean) {
