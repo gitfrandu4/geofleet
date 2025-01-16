@@ -32,7 +32,6 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
-import java.util.Properties
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
@@ -40,9 +39,10 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.Properties
 
 class MapActivity :
-        AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
+    AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
     private lateinit var binding: ActivityMapBinding
     private lateinit var map: GoogleMap
     private lateinit var database: AppDatabase
@@ -108,7 +108,7 @@ class MapActivity :
         val regularMarkerView = layoutInflater.inflate(R.layout.custom_marker, null)
         regularMarkerView.findViewById<ImageView>(R.id.marker_icon).apply {
             setImageDrawable(
-                    ContextCompat.getDrawable(this@MapActivity, R.drawable.ic_vehicle_marker)
+                ContextCompat.getDrawable(this@MapActivity, R.drawable.ic_vehicle_marker)
             )
         }
         customMarkerBitmap = createCustomMarker(regularMarkerView)
@@ -117,7 +117,7 @@ class MapActivity :
         val selectedMarkerView = layoutInflater.inflate(R.layout.custom_marker, null)
         selectedMarkerView.findViewById<ImageView>(R.id.marker_icon).apply {
             setImageDrawable(
-                    ContextCompat.getDrawable(this@MapActivity, R.drawable.ic_vehicle_marker)
+                ContextCompat.getDrawable(this@MapActivity, R.drawable.ic_vehicle_marker)
             )
             setColorFilter(ContextCompat.getColor(this@MapActivity, R.color.success_color))
         }
@@ -128,11 +128,11 @@ class MapActivity :
         view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
         view.layout(0, 0, view.measuredWidth, view.measuredHeight)
         val bitmap =
-                Bitmap.createBitmap(
-                        view.measuredWidth,
-                        view.measuredHeight,
-                        Bitmap.Config.ARGB_8888
-                )
+            Bitmap.createBitmap(
+                view.measuredWidth,
+                view.measuredHeight,
+                Bitmap.Config.ARGB_8888
+            )
         val canvas = Canvas(bitmap)
         view.draw(canvas)
         return BitmapDescriptorFactory.fromBitmap(bitmap)
@@ -157,24 +157,24 @@ class MapActivity :
             R.id.nav_fleet -> {
                 // Start MainActivity with fleet destination
                 val intent =
-                        Intent(this, MainActivity::class.java).apply {
-                            flags =
-                                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                                            Intent.FLAG_ACTIVITY_SINGLE_TOP
-                            putExtra("destination", "fleet")
-                        }
+                    Intent(this, MainActivity::class.java).apply {
+                        flags =
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                            Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        putExtra("destination", "fleet")
+                    }
                 startActivity(intent)
                 finish()
             }
             R.id.nav_profile -> {
                 // Start MainActivity with profile destination
                 val intent =
-                        Intent(this, MainActivity::class.java).apply {
-                            flags =
-                                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                                            Intent.FLAG_ACTIVITY_SINGLE_TOP
-                            putExtra("destination", "profile")
-                        }
+                    Intent(this, MainActivity::class.java).apply {
+                        flags =
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                            Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        putExtra("destination", "profile")
+                    }
                 startActivity(intent)
                 finish()
             }
@@ -201,7 +201,8 @@ class MapActivity :
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
         } else {
-            @Suppress("DEPRECATION") super.onBackPressed()
+            @Suppress("DEPRECATION")
+            super.onBackPressed()
         }
     }
 
@@ -220,13 +221,16 @@ class MapActivity :
                 val isSelected = position.vehicleId == selectedVehicleId
 
                 map.addMarker(
-                        MarkerOptions()
-                                .position(latLng)
-                                .title("Vehicle ${position.vehicleId}")
-                                .icon(
-                                        if (isSelected) selectedVehicleMarkerBitmap
-                                        else customMarkerBitmap
-                                )
+                    MarkerOptions()
+                        .position(latLng)
+                        .title("Vehicle ${position.vehicleId}")
+                        .icon(
+                            if (isSelected) {
+                                selectedVehicleMarkerBitmap
+                            } else {
+                                customMarkerBitmap
+                            }
+                        )
                 )
 
                 // If this is the selected vehicle, center the map on it
@@ -247,8 +251,8 @@ class MapActivity :
         } catch (e: Exception) {
             Log.e("MapActivity", "Error updating map", e)
             Snackbar.make(binding.root, R.string.error_loading_positions, Snackbar.LENGTH_LONG)
-                    .setAction(R.string.action_retry) { lifecycleScope.launch { updateMap() } }
-                    .show()
+                .setAction(R.string.action_retry) { lifecycleScope.launch { updateMap() } }
+                .show()
         }
     }
 
@@ -285,7 +289,9 @@ class MapActivity :
                                         longitude = position.getLongitudeAsDouble(),
                                         timestamp = position.timestamp
                                     )
-                                } else null
+                                } else {
+                                    null
+                                }
                             } catch (e: Exception) {
                                 Log.e("MapActivity", "Error fetching position for $vehicleId", e)
                                 null
@@ -312,9 +318,7 @@ class MapActivity :
     }
 
     private fun setupVehicleService() {
-        val loggingInterceptor = HttpLoggingInterceptor().apply { 
-            level = HttpLoggingInterceptor.Level.BODY 
-        }
+        val loggingInterceptor = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
 
         val client = OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
