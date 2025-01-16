@@ -3,7 +3,7 @@
 ## Overview
 The vehicle positions feature displays real-time location data for vehicles in two formats:
 1. A map view showing all vehicles' current positions
-2. A list view showing detailed information for each vehicle
+2. A list view showing detailed information for each vehicle with search and filtering capabilities
 
 ## Configuration
 The feature uses an external configuration file (`assets/config.properties`) to manage vehicle IDs:
@@ -58,16 +58,19 @@ object ConfigurationReader {
   - User returns to the fragment
   - User manually refreshes
 - Uses custom markers for vehicles
+- Improved position refresh handling with coroutine job management
 
 #### Fleet View (`FleetFragment`)
 - Displays a list of all vehicles with:
   - Vehicle image/icon
-  - Vehicle ID
+  - Vehicle ID (localized format: "Vehículo X")
   - Last known position
   - Quick actions:
     - Profile button (for future vehicle details/settings)
     - Map button (opens map centered on the vehicle)
 - Features:
+  - Search functionality to filter vehicles
+  - Total vehicles counter in a floating circle
   - Pull-to-refresh functionality
   - Empty state view when no vehicles are available
   - Error handling with retry options
@@ -77,19 +80,27 @@ object ConfigurationReader {
    - Load vehicle IDs from configuration
    - Fetch positions from API
    - Store in Room database
-   - Update Firestore
+   - Update Firestore with current position and history
    - Update UI
 
 2. **Refresh Flow**:
-   - Cancel any ongoing refresh
+   - Cancel any ongoing refresh job
    - Fetch new positions for all vehicles
    - Update local and cloud storage
    - Refresh UI
+   - Update total vehicles counter
 
-3. **Error Handling**:
+3. **Search Flow**:
+   - User enters search text
+   - List is filtered in real-time
+   - Total counter updates to reflect filtered results
+   - Original list is preserved for reset
+
+4. **Error Handling**:
    - Network errors show retry option
    - Missing vehicles are logged
    - API errors are handled gracefully
+   - Job cancellations are managed properly
 
 ### Firebase Integration
 - Each vehicle has:
@@ -115,6 +126,8 @@ object ConfigurationReader {
 1. **View All Vehicles**:
    - Open the Fleet section from the navigation drawer
    - All vehicles are displayed in a scrollable list
+   - Use the search bar to filter vehicles
+   - View total vehicle count in the floating counter
    - Pull down to refresh the list
 
 2. **View Vehicle on Map**:
@@ -138,13 +151,18 @@ implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
 
 // Lifecycle
 implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
+
+// Material Design
+implementation 'com.google.android.material:material:1.11.0'
 ```
 
-## Usage
-1. Launch `VehiclePositionsActivity`
-2. Positions are automatically loaded and displayed
-3. Pull down to refresh or use toolbar refresh button
-4. Positions are cached locally for offline access
+## Error Handling
+- Network errors are caught and logged
+- UI remains responsive during refresh
+- Local cache ensures data availability
+- SwipeRefreshLayout indicates refresh state
+- Coroutine jobs are properly managed to prevent memory leaks
+- Detailed logging for debugging and monitoring
 
 
 ## Error Handling
