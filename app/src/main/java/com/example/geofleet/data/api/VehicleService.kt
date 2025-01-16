@@ -8,7 +8,7 @@ import retrofit2.http.Path
 interface VehicleService {
     @GET("vehicle/{id}")
     suspend fun getVehiclePosition(
-            @Path("id") vehicleId: String,
-            @Header("Authorization") token: String
+        @Path("id") vehicleId: String,
+        @Header("Authorization") token: String
     ): VehiclePosition?
 }

@@ -26,9 +26,9 @@ class FleetFragment : Fragment() {
     private lateinit var adapter: VehicleAdapter
 
     override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View {
         _binding = FragmentFleetBinding.inflate(inflater, container, false)
         return binding.root
@@ -44,14 +44,14 @@ class FleetFragment : Fragment() {
 
     private fun setupRecyclerView() {
         adapter =
-                VehicleAdapter(
-                        onProfileClick = { vehicleId ->
-                            // TODO: Navigate to vehicle profile
-                        },
-                        onMapClick = { vehicleId ->
-                            // TODO: Navigate to map centered on vehicle
-                        }
-                )
+            VehicleAdapter(
+                onProfileClick = { vehicleId ->
+                    // TODO: Navigate to vehicle profile
+                },
+                onMapClick = { vehicleId ->
+                    // TODO: Navigate to map centered on vehicle
+                }
+            )
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = this@FleetFragment.adapter
@@ -64,23 +64,23 @@ class FleetFragment : Fragment() {
 
     private fun setupSearch() {
         binding.searchInput.addTextChangedListener(
-                object : TextWatcher {
-                    override fun beforeTextChanged(
-                            s: CharSequence?,
-                            start: Int,
-                            count: Int,
-                            after: Int
-                    ) {}
-                    override fun onTextChanged(
-                            s: CharSequence?,
-                            start: Int,
-                            before: Int,
-                            count: Int
-                    ) {
-                        viewModel.setSearchQuery(s?.toString() ?: "")
-                    }
-                    override fun afterTextChanged(s: Editable?) {}
+            object : TextWatcher {
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {}
+                override fun onTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    before: Int,
+                    count: Int
+                ) {
+                    viewModel.setSearchQuery(s?.toString() ?: "")
                 }
+                override fun afterTextChanged(s: Editable?) {}
+            }
         )
     }
 
@@ -103,9 +103,9 @@ class FleetFragment : Fragment() {
                     viewModel.filteredVehicles.collect { vehicles ->
                         adapter.submitList(vehicles)
                         binding.emptyView.visibility =
-                                if (vehicles.isEmpty()) View.VISIBLE else View.GONE
+                            if (vehicles.isEmpty()) View.VISIBLE else View.GONE
                         binding.totalVehicles.text =
-                                getString(R.string.total_vehicles, vehicles.size)
+                            getString(R.string.total_vehicles, vehicles.size)
                     }
                 }
             }

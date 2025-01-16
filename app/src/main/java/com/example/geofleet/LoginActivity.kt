@@ -12,8 +12,8 @@ import com.example.geofleet.data.repository.VehicleRepository
 import com.example.geofleet.databinding.ActivityLoginBinding
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
-import java.util.Properties
 import kotlinx.coroutines.launch
+import java.util.Properties
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
@@ -93,7 +93,7 @@ class LoginActivity : AppCompatActivity() {
         val properties = Properties()
         assets.open("config.properties").use { properties.load(it) }
         val ids =
-                properties.getProperty("vehicle.ids")?.split(",")?.map { it.trim() } ?: emptyList()
+            properties.getProperty("vehicle.ids")?.split(",")?.map { it.trim() } ?: emptyList()
         Log.d("LoginActivity", "Found ${ids.size} vehicle IDs")
         return ids
     }
@@ -110,31 +110,31 @@ class LoginActivity : AppCompatActivity() {
                 Log.d("LoginActivity", "Got positions: ${positions.size}")
 
                 val entities =
-                        positions.mapNotNull { (id, position) ->
-                            position?.let {
-                                try {
-                                    VehiclePositionEntity(
-                                                    vehicleId = id,
-                                                    latitude = it.latitude.toDouble(),
-                                                    longitude = it.longitude.toDouble(),
-                                                    timestamp = System.currentTimeMillis()
-                                            )
-                                            .also { entity ->
-                                                Log.d(
-                                                        "LoginActivity",
-                                                        "Created entity for vehicle $id: lat=${entity.latitude}, lon=${entity.longitude}"
-                                                )
-                                            }
-                                } catch (e: Exception) {
-                                    Log.e(
+                    positions.mapNotNull { (id, position) ->
+                        position?.let {
+                            try {
+                                VehiclePositionEntity(
+                                    vehicleId = id,
+                                    latitude = it.latitude.toDouble(),
+                                    longitude = it.longitude.toDouble(),
+                                    timestamp = System.currentTimeMillis()
+                                )
+                                    .also { entity ->
+                                        Log.d(
                                             "LoginActivity",
-                                            "Error converting position for vehicle $id",
-                                            e
-                                    )
-                                    null
-                                }
+                                            "Created entity for vehicle $id: lat=${entity.latitude}, lon=${entity.longitude}"
+                                        )
+                                    }
+                            } catch (e: Exception) {
+                                Log.e(
+                                    "LoginActivity",
+                                    "Error converting position for vehicle $id",
+                                    e
+                                )
+                                null
                             }
                         }
+                    }
                 Log.d("LoginActivity", "Created ${entities.size} entities")
 
                 database.vehiclePositionDao().insertAll(entities)
@@ -150,16 +150,16 @@ class LoginActivity : AppCompatActivity() {
                 Log.e("LoginActivity", "Error in fetchInitialData", e)
                 showLoading(false)
                 val errorMessage =
-                        when {
-                            e.message?.contains("HTTP") == true -> getString(R.string.api_error)
-                            e.message?.contains("database") == true ->
-                                    getString(R.string.database_error)
-                            else -> getString(R.string.login_error)
-                        }
+                    when {
+                        e.message?.contains("HTTP") == true -> getString(R.string.api_error)
+                        e.message?.contains("database") == true ->
+                            getString(R.string.database_error)
+                        else -> getString(R.string.login_error)
+                    }
                 Snackbar.make(binding.root, errorMessage, Snackbar.LENGTH_SHORT)
-                        .setBackgroundTint(getColor(R.color.error))
-                        .setTextColor(getColor(R.color.on_error_container))
-                        .show()
+                    .setBackgroundTint(getColor(R.color.error))
+                    .setTextColor(getColor(R.color.on_error_container))
+                    .show()
             }
         }
     }
