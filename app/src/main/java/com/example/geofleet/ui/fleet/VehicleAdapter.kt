@@ -28,7 +28,7 @@ class VehicleAdapter(
 
         fun bind(vehicle: VehicleInfo) {
             binding.apply {
-                vehicleId.text = vehicle.name
+                vehicleId.text = root.context.getString(R.string.vehicle_format, vehicle.name)
 
                 // Cargar imagen del vehículo
                 if (vehicle.photoUrl != null) {

@@ -9,6 +9,8 @@ import com.example.geofleet.data.local.VehiclePositionEntity
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -29,14 +31,38 @@ class FleetViewModel(application: Application) : AndroidViewModel(application) {
     private val _vehicles = MutableStateFlow<List<VehicleInfo>>(emptyList())
     val vehicles: StateFlow<List<VehicleInfo>> = _vehicles
 
+    private val _filteredVehicles = MutableStateFlow<List<VehicleInfo>>(emptyList())
+    val filteredVehicles: StateFlow<List<VehicleInfo>> = _filteredVehicles
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery
+
     init {
         loadVehicles()
+        viewModelScope.launch {
+            // Observe changes in vehicles and search query to update filtered list
+            combine(_vehicles, _searchQuery) { vehicles, query ->
+                if (query.isEmpty()) {
+                    vehicles
+                } else {
+                    vehicles.filter { vehicle ->
+                        vehicle.name.contains(query, ignoreCase = true) ||
+                                vehicle.id.contains(query, ignoreCase = true)
+                    }
+                }
+            }
+                    .collect { filtered -> _filteredVehicles.value = filtered }
+        }
+    }
+
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
     }
 
     fun loadVehicles() {

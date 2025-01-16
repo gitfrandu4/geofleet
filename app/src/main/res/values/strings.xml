@@ -8,6 +8,11 @@
     <string name="profile">Perfil</string>
     <string name="menu">Menú</string>
 
+    <!-- Search -->
+    <string name="search_vehicles">Buscar vehículos…</string>
+    <string name="vehicle_format">Vehículo %s</string>
+    <string name="total_vehicles">Total: %d</string>
+
     <!-- Actions -->
     <string name="action_search">Buscar</string>
     <string name="action_refresh">Actualizar</string>
