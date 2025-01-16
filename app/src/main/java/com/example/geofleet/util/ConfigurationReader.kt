@@ -9,7 +9,7 @@ object ConfigurationReader {
     fun init(context: Context) {
         if (properties == null) {
             properties = Properties().apply {
-                context.assets.open("config.properties").use { 
+                context.assets.open("config.properties").use {
                     load(it)
                 }
             }
@@ -22,4 +22,4 @@ object ConfigurationReader {
             ?.map { it.trim() }
             ?: emptyList()
     }
-} 
+}

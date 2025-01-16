@@ -27,10 +27,10 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 import java.net.UnknownHostException
 import java.text.SimpleDateFormat
 import java.util.Locale
-import kotlinx.coroutines.launch
 
 class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
     private var _binding: FragmentVehiclePositionsBinding? = null
@@ -44,9 +44,9 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
     private val TAG = "VehiclePositionsFragment"
 
     override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View {
         Log.d(TAG, "onCreateView started")
         _binding = FragmentVehiclePositionsBinding.inflate(inflater, container, false)
@@ -61,7 +61,7 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        binding.fab?.let {
+        binding.fab.let {
             Log.d(TAG, "FAB found in binding")
             it.visibility = View.VISIBLE
             it.setOnClickListener { _ ->
@@ -71,7 +71,6 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
                 }
             }
         }
-                ?: Log.e(TAG, "FAB not found in binding!")
 
         createCustomMarkerBitmap()
         setupObservers()
@@ -113,13 +112,13 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
     private fun handleError(error: Throwable) {
         _binding?.let { binding ->
             val messageResId =
-                    when (error) {
-                        is UnknownHostException -> R.string.error_no_internet
-                        else -> R.string.error_loading_positions
-                    }
+                when (error) {
+                    is UnknownHostException -> R.string.error_no_internet
+                    else -> R.string.error_loading_positions
+                }
             Snackbar.make(binding.root, messageResId, Snackbar.LENGTH_LONG)
-                    .setAction(R.string.action_retry) { refreshVehiclePositions() }
-                    .show()
+                .setAction(R.string.action_retry) { refreshVehiclePositions() }
+                .show()
         }
     }
 
@@ -138,10 +137,10 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
             }
 
             map.moveCamera(
-                    CameraUpdateFactory.newLatLngZoom(
-                            LatLng(40.4168, -3.7038), // Madrid coordinates
-                            6f // Zoom level
-                    )
+                CameraUpdateFactory.newLatLngZoom(
+                    LatLng(40.4168, -3.7038), // Madrid coordinates
+                    6f // Zoom level
+                )
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error setting up map: ${e.message}", e)
@@ -155,7 +154,7 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
 
         val markerIcon = markerView.findViewById<ImageView>(R.id.marker_icon)
         markerIcon.setImageDrawable(
-                ContextCompat.getDrawable(requireContext(), R.drawable.ic_vehicle_marker)
+            ContextCompat.getDrawable(requireContext(), R.drawable.ic_vehicle_marker)
         )
 
         customMarkerBitmap = createCustomMarker(markerView)
@@ -165,11 +164,11 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
         view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
         view.layout(0, 0, view.measuredWidth, view.measuredHeight)
         val bitmap =
-                Bitmap.createBitmap(
-                        view.measuredWidth,
-                        view.measuredHeight,
-                        Bitmap.Config.ARGB_8888
-                )
+            Bitmap.createBitmap(
+                view.measuredWidth,
+                view.measuredHeight,
+                Bitmap.Config.ARGB_8888
+            )
         val canvas = Canvas(bitmap)
         view.draw(canvas)
         return BitmapDescriptorFactory.fromBitmap(bitmap)
@@ -205,11 +204,11 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
                 boundsBuilder.include(latLng)
 
                 map.addMarker(
-                        MarkerOptions()
-                                .position(latLng)
-                                .icon(customMarkerBitmap)
-                                .title("Vehicle ${position.vehicleId}")
-                                .snippet("Last update: ${dateFormat.format(position.timestamp)}")
+                    MarkerOptions()
+                        .position(latLng)
+                        .icon(customMarkerBitmap)
+                        .title("Vehicle ${position.vehicleId}")
+                        .snippet("Last update: ${dateFormat.format(position.timestamp)}")
                 )
             }
         }
@@ -217,10 +216,10 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
         try {
             val bounds = boundsBuilder.build()
             map.animateCamera(
-                    CameraUpdateFactory.newLatLngBounds(
-                            bounds,
-                            100 // padding in pixels
-                    )
+                CameraUpdateFactory.newLatLngBounds(
+                    bounds,
+                    100 // padding in pixels
+                )
             )
             Log.d(TAG, "Camera animated to show all markers")
         } catch (e: Exception) {

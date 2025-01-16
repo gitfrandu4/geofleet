@@ -62,10 +62,10 @@ class ProfileImageView @JvmOverloads constructor(
     fun startListeningToProfileChanges() {
         // Remove existing listener if any
         snapshotListener?.remove()
-        
+
         auth.currentUser?.let { user ->
             Log.d(TAG, "Starting to listen for profile changes for user: ${user.uid}")
-            
+
             snapshotListener = db.collection(UserProfile.COLLECTION_NAME)
                 .document(user.uid)
                 .addSnapshotListener { snapshot, e ->
@@ -77,7 +77,7 @@ class ProfileImageView @JvmOverloads constructor(
                     if (snapshot != null && snapshot.exists()) {
                         val profile = snapshot.toObject(UserProfile::class.java)
                         Log.d(TAG, "Profile updated: $profile")
-                        
+
                         if (!profile?.photoUrl.isNullOrEmpty()) {
                             Log.d(TAG, "Loading updated profile image: ${profile?.photoUrl}")
                             Glide.with(this)
@@ -109,4 +109,4 @@ class ProfileImageView @JvmOverloads constructor(
     companion object {
         private const val TAG = "ProfileImageView"
     }
-} 
+}
