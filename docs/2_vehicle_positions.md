@@ -1,16 +1,19 @@
 # Vehicle Positions Feature Documentation
 
 ## Overview
-The vehicle positions feature displays real-time location data for vehicles in a scrollable list format. It implements a local caching mechanism using Room database and provides pull-to-refresh functionality for updating the data.
+The vehicle positions feature displays real-time location data for vehicles in two formats:
+1. A map view showing all vehicles' current positions
+2. A list view showing detailed information for each vehicle
 
 ## Configuration
 The feature uses an external configuration file (`assets/config.properties`) to manage vehicle IDs:
 
 ```properties
 # Vehicle Configuration
-vehicle.ids=vehicle1,vehicle2,vehicle3
+vehicle.ids=1509,1511,1512,1528,1793
+API_TOKEN=your_api_token_here
+BASE_URL=https://api.example.com/
 ```
-
 Configuration is managed through the `ConfigurationReader` utility:
 ```kotlin
 object ConfigurationReader {
@@ -27,79 +30,101 @@ object ConfigurationReader {
   @Entity(tableName = "vehicle_positions")
   data class VehiclePositionEntity(
       @PrimaryKey val vehicleId: String,
-      val latitude: String,
-      val longitude: String,
+      val latitude: Double,
+      val longitude: Double,
       val timestamp: Long = System.currentTimeMillis()
   )
   ```
 
-- **DAO**: `VehiclePositionDao`
+### API
+- **Service**: `VehicleService`
   ```kotlin
-  @Dao
-  interface VehiclePositionDao {
-      @Insert(onConflict = OnConflictStrategy.REPLACE)
-      suspend fun insertAll(positions: List<VehiclePositionEntity>)
-
-      @Query("SELECT * FROM vehicle_positions ORDER BY timestamp DESC")
-      fun getAllPositions(): Flow<List<VehiclePositionEntity>>
+  interface VehicleService {
+      @GET("vehicle/{id}")
+      suspend fun getVehiclePosition(
+          @Path("id") vehicleId: String,
+          @Header("Authorization") token: String
+      ): VehiclePosition?
   }
   ```
 
-### UI Components
+### Views
 
-#### Layout Files
-1. **Activity Layout** (`activity_vehicle_positions.xml`):
-   - CoordinatorLayout with AppBarLayout
-   - MaterialToolbar with refresh action
-   - SwipeRefreshLayout containing RecyclerView
+#### Map View (`VehiclePositionsFragment`)
+- Displays vehicles on a Google Map
+- Auto-refreshes positions when:
+  - Fragment is created
+  - Map is ready
+  - User returns to the fragment
+  - User manually refreshes
+- Uses custom markers for vehicles
 
-2. **List Item Layout** (`item_vehicle_position.xml`):
-   - MaterialCardView containing:
-     - Vehicle ID
-     - Position coordinates
-     - Timestamp
+#### Fleet View (`FleetFragment`)
+- Displays a list of all vehicles with:
+  - Vehicle image/icon
+  - Vehicle ID
+  - Last known position
+  - Quick actions:
+    - Profile button (for future vehicle details/settings)
+    - Map button (opens map centered on the vehicle)
+- Features:
+  - Pull-to-refresh functionality
+  - Empty state view when no vehicles are available
+  - Error handling with retry options
 
-### Activity Implementation
-`VehiclePositionsActivity` manages the UI and data flow:
+### Data Flow
+1. **Initial Load**:
+   - Load vehicle IDs from configuration
+   - Fetch positions from API
+   - Store in Room database
+   - Update Firestore
+   - Update UI
 
-```kotlin
-class VehiclePositionsActivity : AppCompatActivity() {
-    // Key components
-    private lateinit var binding: ActivityVehiclePositionsBinding
-    private lateinit var vehicleRepository: VehicleRepository
-    private lateinit var database: AppDatabase
-    private val adapter = VehiclePositionAdapter()
+2. **Refresh Flow**:
+   - Cancel any ongoing refresh
+   - Fetch new positions for all vehicles
+   - Update local and cloud storage
+   - Refresh UI
 
-    // Features
-    - RecyclerView with LinearLayoutManager
-    - SwipeRefreshLayout for pull-to-refresh
-    - Toolbar with refresh action
-    - Real-time position updates using Flow
-    - Local caching in Room database
-}
-```
+3. **Error Handling**:
+   - Network errors show retry option
+   - Missing vehicles are logged
+   - API errors are handled gracefully
 
-### Adapter Implementation
-`VehiclePositionAdapter` handles the display of individual vehicle positions:
-- Extends ListAdapter for efficient list updates
-- Uses DiffUtil for optimized item updates
-- Displays vehicle ID, coordinates, and formatted timestamp
+### Firebase Integration
+- Each vehicle has:
+  - Current position document
+  - History collection of positions
+  ```json
+  vehicles/
+    ├── {vehicle_id}/
+    │   ├── current_position/
+    │   │   ├── latitude: Double
+    │   │   ├── longitude: Double
+    │   │   └── timestamp: Long
+    │   └── coordinates_history/
+    │       └── {position_id}/
+    │           ├── coordinates/
+    │           │   ├── latitude: Double
+    │           │   └── longitude: Double
+    │           ├── timestamp: Long
+    │           └── created_at: Long
+  ```
 
-## Data Flow
-1. Initial Load:
-   - Activity observes database for positions
-   - Triggers initial refresh to fetch latest data
+## Usage
+1. **View All Vehicles**:
+   - Open the Fleet section from the navigation drawer
+   - All vehicles are displayed in a scrollable list
+   - Pull down to refresh the list
 
-2. Refresh Operation:
-   - User triggers refresh (pull-to-refresh or button)
-   - Fetches new positions from repository
-   - Updates local database
-   - UI automatically updates through Flow observation
+2. **View Vehicle on Map**:
+   - Click the map button on any vehicle card
+   - The map will open centered on that vehicle
 
-3. Data Persistence:
-   - All positions are cached in Room database
-   - UI always shows data from local database
-   - Ensures offline availability
+3. **Refresh Positions**:
+   - Pull to refresh in the fleet view
+   - Click the FAB in the map view
+   - Positions auto-refresh when returning to either view
 
 ## Dependencies
 ```gradle
@@ -120,6 +145,7 @@ implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
 2. Positions are automatically loaded and displayed
 3. Pull down to refresh or use toolbar refresh button
 4. Positions are cached locally for offline access
+
 
 ## Error Handling
 - Network errors are caught and logged

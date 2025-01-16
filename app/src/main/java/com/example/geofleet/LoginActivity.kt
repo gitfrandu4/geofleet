@@ -157,8 +157,8 @@ class LoginActivity : AppCompatActivity() {
                             else -> getString(R.string.login_error)
                         }
                 Snackbar.make(binding.root, errorMessage, Snackbar.LENGTH_SHORT)
-                        .setBackgroundTint(getColor(R.color.error_color))
-                        .setTextColor(getColor(R.color.on_error))
+                        .setBackgroundTint(getColor(R.color.error))
+                        .setTextColor(getColor(R.color.on_error_container))
                         .show()
             }
         }

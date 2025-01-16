@@ -94,4 +94,11 @@
 
     <!-- Map Markers -->
     <string name="vehicle_marker">Marcador de vehículo</string>
+    <string name="map">Mapa</string>
+
+    <!-- Fleet Management -->
+    <string name="vehicle_image">Imagen del vehículo</string>
+    <string name="no_vehicles_icon">Icono de sin vehículos</string>
+    <string name="no_vehicles_description">No se encontraron vehículos en la flota</string>
+    <string name="last_position_format">Última posición: %1$.4f, %2$.4f</string>
 </resources>
