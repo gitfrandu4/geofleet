@@ -8,6 +8,7 @@
   - [Objetivos del Proyecto](#objetivos-del-proyecto)
   - [Arquitectura y Patrones de Diseño](#arquitectura-y-patrones-de-diseño)
     - [Patrones y Principios Clave](#patrones-y-principios-clave)
+    - [Manejo de Imágenes de Perfil](#manejo-de-imágenes-de-perfil)
   - [Funcionalidades Clave](#funcionalidades-clave)
   - [Tecnologías Utilizadas](#tecnologías-utilizadas)
   - [Estructura del Proyecto](#estructura-del-proyecto)
@@ -17,6 +18,8 @@
     - [2. Google Maps](#2-google-maps)
     - [3. Gradle](#3-gradle)
   - [Base de Datos Local y Sincronización](#base-de-datos-local-y-sincronización)
+    - [Estructura de Datos](#estructura-de-datos)
+    - [Flujo de Datos](#flujo-de-datos)
   - [Detalles Técnicos Destacados](#detalles-técnicos-destacados)
     - [Integración de Mapas](#integración-de-mapas)
     - [Gestión de Perfiles](#gestión-de-perfiles)
@@ -30,6 +33,8 @@
       - [Interfaz de Usuario](#interfaz-de-usuario)
   - [CI/CD y Automatización (🤖)](#cicd-y-automatización-)
     - [Revisión Automática de Código](#revisión-automática-de-código)
+    - [Análisis Automático](#análisis-automático)
+    - [Configuración de Secretos](#configuración-de-secretos)
   - [Información para la Defensa del Trabajo](#información-para-la-defensa-del-trabajo)
 
 ---
@@ -87,6 +92,14 @@ El proyecto se ha diseñado siguiendo **MVVM** y elementos de **Clean Architectu
 - **Dependency Injection** (opcional): Factible con **Hilt** o **Koin**.  
 - **SOLID**: Se promueve responsabilidad única y separación de intereses.
 
+### Manejo de Imágenes de Perfil
+El proyecto implementa un sistema robusto para el manejo de imágenes de perfil usando un componente personalizado `ProfileImageView` que:
+- Gestiona automáticamente la carga de imágenes desde Firebase Storage
+- Proporciona visualización circular de imágenes
+- Maneja actualizaciones en tiempo real
+- Implementa fallbacks y placeholders
+- Mantiene consistencia en toda la aplicación
+
 ---
 
 ## Funcionalidades Clave
@@ -105,6 +118,12 @@ El proyecto se ha diseñado siguiendo **MVVM** y elementos de **Clean Architectu
 
 - **🌐 Interfaz Moderna**  
   Basada en **Material Design 3**, con navegación limpia y soporte para gestos de Android.
+
+- **👤 Gestión Avanzada de Perfiles**
+  - Edición de datos personales (nombre, cargo, género)
+  - Selector de fecha de nacimiento localizado
+  - Sistema robusto de manejo de imágenes de perfil
+  - Sincronización en tiempo real con Firebase
 
 ---
 
@@ -220,11 +239,10 @@ dependencies {
 
 ## Base de Datos Local y Sincronización
 
-Para el funcionamiento offline, se utiliza **Room Database**. La actualización en tiempo real se realiza con **Firebase Firestore**.
+El proyecto implementa una robusta estrategia de sincronización:
 
-Ejemplo de modelo de datos:
-
-```
+### Estructura de Datos
+```kotlin
 @Entity(tableName = "vehicle_positions")
 data class VehiclePositionEntity(
     @PrimaryKey val vehicleId: String,
@@ -234,18 +252,20 @@ data class VehiclePositionEntity(
 )
 ```
 
-DAO para manejar consultas:
+### Flujo de Datos
+1. **Carga Inicial**:
+   - Carga de IDs desde configuración
+   - Obtención de posiciones desde API
+   - Almacenamiento en Room
+   - Actualización en Firestore
+   - Actualización de UI
 
-```
-@Dao
-interface VehiclePositionDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(positions: List<VehiclePositionEntity>)
-
-    @Query("SELECT * FROM vehicle_positions ORDER BY timestamp DESC")
-    fun getAllPositions(): Flow<List<VehiclePositionEntity>>
-}
-```
+2. **Actualizaciones**:
+   - Cancelación de trabajos en curso
+   - Obtención de nuevas posiciones
+   - Actualización de almacenamiento local y en la nube
+   - Actualización de UI
+   - Actualización de contadores
 
 ---
 
@@ -335,44 +355,24 @@ API_TOKEN=your_api_token
 
 ## CI/CD y Automatización (🤖)
 
-GeoFleet emplea **GitHub Actions** para la integración continua:
-
-```
-name: Android CI/CD
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: 17
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Build with Gradle
-        run: ./gradlew build
-```
-
-El workflow hace:
-
-1. **Configuración del entorno** (JDK, Android SDK).  
-2. **Análisis de código** (ktlint, Android Lint).  
-3. **Reporte de artefactos** (tests, lint).
+El proyecto implementa un sistema completo de CI/CD usando GitHub Actions:
 
 ### Revisión Automática de Código
+- **Comandos en Pull Requests**:
+  - `/review`: Obtiene una revisión técnica detallada
+  - `/summary`: Genera un resumen técnico educativo
 
-Usa GitHub Actions con GPT-4 (o ChatGPT) para revisiones en Pull Requests:
-- **`/review`**: Para obtener feedback técnico detallado.  
-- **`/summary`**: Para un resumen amigable.
+### Análisis Automático
+- Ejecución de ktlint
+- Análisis con Android Lint
+- Pruebas unitarias
+- Generación y subida de reportes
+
+### Configuración de Secretos
+El proyecto requiere la configuración de los siguientes secretos en GitHub:
+- `OPENAI_API_KEY`: Para revisiones de código AI
+- `MAPS_API_KEY`: Para tests de integración
+- `GOOGLE_SERVICES_JSON`: Archivo de configuración de Firebase (en base64)
 
 ---
 
