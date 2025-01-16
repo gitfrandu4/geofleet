@@ -1,0 +1,3 @@
+sdk.dir=/Users/USUARIO/Library/Android/sdk
+# Required for Google Maps
+MAPS_API_KEY=your_maps_api_key_here 
