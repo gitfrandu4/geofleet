@@ -1,206 +1,163 @@
-name: "OpenAI PR Review"
+name: AI PR Review
 
 on:
   issue_comment:
     types: [created]
 
 jobs:
-  openai-pr-review:
-    if: ${{ github.event.issue.pull_request != null }}
+  review:
+    # Solo ejecutar si es un PR y contiene los comandos específicos
+    if: |
+      github.event.issue.pull_request && 
+      (contains(github.event.comment.body, '/review') || contains(github.event.comment.body, '/summary'))
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
     steps:
-      - name: Comprobar comando en el comentario
-        id: parse_comment
-        run: |
-          echo "Comentario recibido: ${{ github.event.comment.body }}"
-          
-          COMENTARIO=$(echo "${{ github.event.comment.body }}" | tr '[:upper:]' '[:lower:]')
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-          if [[ "$COMENTARIO" == *"/review"* ]]; then
-            echo "Comando /review detectado."
-            echo "COMMAND=review" >> $GITHUB_OUTPUT
-          elif [[ "$COMENTARIO" == *"/summary"* ]]; then
-            echo "Comando /summary detectado."
-            echo "COMMAND=summary" >> $GITHUB_OUTPUT
-          else
-            echo "No se encontró comando válido."
-            echo "COMMAND=none" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Obtener contenido del Pull Request
-        id: pr_info
+      - name: Get PR diff
+        id: diff
         run: |
           PR_NUMBER="${{ github.event.issue.number }}"
-          PR_DATA=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Accept: application/vnd.github.v3+json" \
-              "https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}")
+          PR_DIFF_URL=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}" \
+            | jq -r '.diff_url')
           
-          PR_TITLE=$(echo "$PR_DATA" | jq -r '.title')
-          PR_BODY=$(echo "$PR_DATA" | jq -r '.body')
-          PR_AUTHOR=$(echo "$PR_DATA" | jq -r '.user.login')
-          PR_DIFF_URL=$(echo "$PR_DATA" | jq -r '.diff_url')
-          
-          # Obtener el diff
           PR_DIFF=$(curl -s "$PR_DIFF_URL")
-          
-          echo "title=$PR_TITLE" >> $GITHUB_OUTPUT
-          echo "body=$PR_BODY" >> $GITHUB_OUTPUT
-          echo "author=$PR_AUTHOR" >> $GITHUB_OUTPUT
-          echo "diff<<EOF" >> $GITHUB_OUTPUT
+          echo "DIFF<<EOF" >> $GITHUB_OUTPUT
           echo "$PR_DIFF" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Comprobar si hay que ejecutar la llamada a OpenAI
-        if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
-        uses: actions/checkout@v3
-
-      - name: Instalar dependencias (Node.js)
-        if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
 
-      - name: Instalar dependencias del proyecto
-        if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
-        run: npm install axios
+      - name: Install dependencies
+        run: npm install openai
 
-      - name: Generar respuesta con OpenAI
-        if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
-        id: openai_call
-        run: |
-          cat << 'EOF' > openai_call.js
-          const axios = require('axios');
-          (async () => {
-            try {
-              const command = process.env.COMMAND;
-              const prTitle = process.env.PR_TITLE;
-              const prBody = process.env.PR_BODY;
-              const prAuthor = process.env.PR_AUTHOR;
-              const prDiff = process.env.PR_DIFF;
+      - name: Generate Review
+        if: contains(github.event.comment.body, '/review')
+        uses: actions/github-script@v6
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PR_DIFF: ${{ steps.diff.outputs.DIFF }}
+        with:
+          script: |
+            const { OpenAI } = require('openai');
+            const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-              let prompt = "";
-              if (command === "review") {
-                prompt = `Eres un experto desarrollador Android con amplia experiencia en Kotlin y las mejores prácticas de desarrollo móvil.
-                Realiza una revisión detallada del siguiente Pull Request:
+            const prompt = `Como experto desarrollador Android, revisa este Pull Request:
 
-                Título: ${prTitle}
-                Autor: ${prAuthor}
-                Descripción: ${prBody}
-                Cambios: ${prDiff}
+            Cambios:
+            ${process.env.PR_DIFF}
 
-                Por favor, proporciona una revisión estructurada que incluya:
+            Proporciona una revisión estructurada que incluya:
 
-                ## 🎯 Resumen General
-                - Objetivo principal de los cambios
-                - Impacto en la aplicación
+            ## 🎯 Resumen General
+            - Objetivo principal de los cambios
+            - Impacto en la aplicación
 
-                ## 💡 Aspectos Positivos
-                - Buenas prácticas implementadas
-                - Patrones de diseño utilizados correctamente
-                - Optimizaciones destacables
+            ## 💡 Aspectos Positivos
+            - Buenas prácticas implementadas
+            - Patrones de diseño utilizados
+            - Optimizaciones destacables
 
-                ## 🚨 Aspectos a Mejorar
-                - Problemas potenciales de rendimiento
-                - Posibles memory leaks
-                - Manejo de ciclos de vida
-                - Gestión de recursos
-                - Seguridad y validaciones
+            ## 🚨 Aspectos a Mejorar
+            - Problemas potenciales
+            - Sugerencias de mejora
+            - Posibles bugs o edge cases
 
-                ## 📝 Recomendaciones
-                - Sugerencias específicas de mejora
-                - Ejemplos de código cuando sea relevante
-                - Referencias a la documentación oficial
+            ## 📝 Recomendaciones
+            - Sugerencias específicas con ejemplos
+            - Referencias a documentación
 
-                ## ✅ Checklist de Verificación
-                - [ ] Manejo correcto de corrutinas y threading
-                - [ ] Implementación adecuada de patrones MVVM/Clean Architecture
-                - [ ] Gestión apropiada del estado de la UI
-                - [ ] Manejo de errores y casos extremos
-                - [ ] Código testeable y mantenible
+            Sé específico y constructivo en tus comentarios.`;
 
-                Por favor, sé específico y constructivo en tus comentarios.`;
-              } else if (command === "summary") {
-                prompt = `Eres un experto desarrollador Android que genera resúmenes técnicos concisos y educativos.
-                Analiza el siguiente Pull Request y genera un resumen enfocado en el aprendizaje:
-
-                Título: ${prTitle}
-                Autor: ${prAuthor}
-                Descripción: ${prBody}
-                Cambios: ${prDiff}
-
-                Por favor, estructura el resumen de la siguiente manera:
-
-                ## 🔍 Descripción Técnica
-                - Componentes Android/Kotlin modificados
-                - Cambios en la arquitectura
-                - Nuevas funcionalidades implementadas
-
-                ## 📚 Conceptos Clave
-                - Patrones de diseño utilizados
-                - APIs de Android relevantes
-                - Bibliotecas y frameworks implementados
-
-                ## 💡 Puntos de Aprendizaje
-                - Mejores prácticas demostradas
-                - Técnicas de implementación interesantes
-                - Optimizaciones notables
-
-                ## 📖 Referencias y Recursos
-                - Enlaces a documentación oficial relevante
-                - Guías de mejores prácticas aplicables
-                - Recursos de aprendizaje relacionados
-
-                Enfócate en aspectos educativos y proporciona contexto para entender mejor las decisiones técnicas tomadas.`;
-              }
-
-              const response = await axios.post(
-                "https://api.openai.com/v1/chat/completions",
-                {
-                  model: "gpt-4",
-                  messages: [
-                    { role: "system", content: "Eres un experto desarrollador Android especializado en Kotlin, arquitectura limpia y mejores prácticas de desarrollo móvil."},
-                    { role: "user", content: prompt }
-                  ],
-                  temperature: 0.2
+            const completion = await openai.chat.completions.create({
+              model: "gpt-4",
+              messages: [
+                { 
+                  role: "system", 
+                  content: "Eres un experto desarrollador Android especializado en Kotlin, arquitectura limpia y mejores prácticas de desarrollo móvil."
                 },
-                {
-                  headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-                  }
-                }
-              );
-              
-              const generatedText = response.data.choices[0].message.content;
-              console.log("GENERATED_TEXT::" + generatedText.replace(/\r?\n/g, '\\n'));
-            } catch (error) {
-              console.error(error);
-              process.exit(1);
-            }
-          })();
-          EOF
+                { role: "user", content: prompt }
+              ],
+              temperature: 0.2
+            });
 
-          OUTPUT=$(COMMAND=${{ steps.parse_comment.outputs.COMMAND }} \
-                   PR_TITLE="${{ steps.pr_info.outputs.title }}" \
-                   PR_BODY="${{ steps.pr_info.outputs.body }}" \
-                   PR_AUTHOR="${{ steps.pr_info.outputs.author }}" \
-                   PR_DIFF="${{ steps.pr_info.outputs.diff }}" \
-                   OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
-                   node openai_call.js
-                 )
+            const review = completion.choices[0].message.content;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `# 🔍 Revisión de Código\n\n${review}`
+            });
 
-          GENERATED_TEXT=$(echo "$OUTPUT" | sed -n 's/^GENERATED_TEXT:://p')
-          echo "review_or_summary=$GENERATED_TEXT" >> $GITHUB_OUTPUT
+      - name: Generate Summary
+        if: contains(github.event.comment.body, '/summary')
+        uses: actions/github-script@v6
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PR_DIFF: ${{ steps.diff.outputs.DIFF }}
+        with:
+          script: |
+            const { OpenAI } = require('openai');
+            const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-      - name: Comentar en el Pull Request la respuesta
-        if: ${{ steps.parse_comment.outputs.COMMAND != 'none' }}
-        run: |
-          PR_NUMBER="${{ github.event.issue.number }}"
-          BODY="${{ steps.openai_call.outputs.review_or_summary }}"
+            const prompt = `Como experto desarrollador Android, genera un resumen técnico educativo de este Pull Request:
 
-          curl -s -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{"body": "'"${BODY//\"/\\\"}"'"}' \
-            "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
+            Cambios:
+            ${process.env.PR_DIFF}
+
+            Estructura el resumen así:
+
+            ## 🔍 Descripción Técnica
+            - Componentes modificados
+            - Cambios en la arquitectura
+            - Nuevas funcionalidades
+
+            ## 📚 Conceptos Clave
+            - Patrones de diseño
+            - APIs relevantes
+            - Bibliotecas utilizadas
+
+            ## 💡 Puntos de Aprendizaje
+            - Mejores prácticas
+            - Técnicas interesantes
+            - Optimizaciones
+
+            ## 📖 Referencias
+            - Documentación relevante
+            - Recursos de aprendizaje
+
+            Enfócate en el valor educativo y el contexto técnico.`;
+
+            const completion = await openai.chat.completions.create({
+              model: "gpt-4",
+              messages: [
+                { 
+                  role: "system", 
+                  content: "Eres un experto desarrollador Android especializado en Kotlin, arquitectura limpia y mejores prácticas de desarrollo móvil."
+                },
+                { role: "user", content: prompt }
+              ],
+              temperature: 0.2
+            });
+
+            const summary = completion.choices[0].message.content;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `# 📖 Resumen Técnico\n\n${summary}`
+            });
