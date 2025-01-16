@@ -82,8 +82,14 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
             Log.d(TAG, "Setting up FAB")
             it.visibility = View.VISIBLE
             it.setOnClickListener { _ ->
-                Log.d(TAG, "FAB clicked, triggering refresh")
-                refreshVehiclePositions()
+                Log.d(TAG, "🔄 FAB clicked - Starting manual refresh")
+                Log.d(TAG, "Current loading state: $isLoading")
+                if (!isLoading) {
+                    Log.d(TAG, "✅ Initiating vehicle positions refresh")
+                    refreshVehiclePositions()
+                } else {
+                    Log.d(TAG, "⚠️ Refresh already in progress, skipping")
+                }
             }
         }
     }
@@ -148,7 +154,8 @@ class VehiclePositionsFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun refreshVehiclePositions() {
-        Log.d(TAG, "Requesting vehicle positions refresh")
+        Log.d(TAG, "🚗 Requesting vehicle positions refresh")
+        Log.d(TAG, "Loading state before refresh: $isLoading")
         viewModel.refreshVehiclePositions()
     }
 
