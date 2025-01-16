@@ -1,20 +1,20 @@
-# Vehicle Positions Feature Documentation
+# Documentación de la Funcionalidad de Posiciones de Vehículos
 
-## Overview
-The vehicle positions feature displays real-time location data for vehicles in two formats:
-1. A map view showing all vehicles' current positions
-2. A list view showing detailed information for each vehicle with search and filtering capabilities
+## Descripción General
+La funcionalidad de posiciones de vehículos muestra datos de ubicación en tiempo real en dos formatos:
+1. Una vista de mapa que muestra las posiciones actuales de todos los vehículos
+2. Una vista de lista que muestra información detallada de cada vehículo con capacidades de búsqueda y filtrado
 
-## Configuration
-The feature uses an external configuration file (`assets/config.properties`) to manage vehicle IDs:
+## Configuración
+La funcionalidad utiliza un archivo de configuración externo (`assets/config.properties`) para gestionar los IDs de vehículos:
 
 ```properties
-# Vehicle Configuration
+# Configuración de Vehículos
 vehicle.ids=1509,1511,1512,1528,1793
 API_TOKEN=your_api_token_here
 BASE_URL=https://api.example.com/
 ```
-Configuration is managed through the `ConfigurationReader` utility:
+La configuración se gestiona a través de la utilidad `ConfigurationReader`:
 ```kotlin
 object ConfigurationReader {
     fun init(context: Context)
@@ -22,10 +22,10 @@ object ConfigurationReader {
 }
 ```
 
-## Components
+## Componentes
 
-### Database
-- **Entity**: `VehiclePositionEntity`
+### Base de Datos
+- **Entidad**: `VehiclePositionEntity`
   ```kotlin
   @Entity(tableName = "vehicle_positions")
   data class VehiclePositionEntity(
@@ -37,7 +37,7 @@ object ConfigurationReader {
   ```
 
 ### API
-- **Service**: `VehicleService`
+- **Servicio**: `VehicleService`
   ```kotlin
   interface VehicleService {
       @GET("vehicle/{id}")
@@ -48,64 +48,67 @@ object ConfigurationReader {
   }
   ```
 
-### Views
+### Vistas
 
-#### Map View (`VehiclePositionsFragment`)
-- Displays vehicles on a Google Map
-- Auto-refreshes positions when:
-  - Fragment is created
-  - Map is ready
-  - User returns to the fragment
-  - User manually refreshes
-- Uses custom markers for vehicles
-- Improved position refresh handling with coroutine job management
+#### Vista de Mapa (`VehiclePositionsFragment`)
+- Muestra vehículos en un mapa de Google
+- Actualiza automáticamente las posiciones cuando:
+  - Se crea el fragmento
+  - El mapa está listo
+  - El usuario regresa al fragmento
+  - El usuario actualiza manualmente
+- Utiliza marcadores personalizados para vehículos:
+  - Vehículos regulares: Color de marcador predeterminado
+  - Vehículo seleccionado: Marcador verde (cuando se abre desde la vista de flota)
+- Centra y hace zoom en el vehículo seleccionado cuando se abre desde la lista
+- Muestra todos los vehículos en vista cuando se abre normalmente
 
-#### Fleet View (`FleetFragment`)
-- Displays a list of all vehicles with:
-  - Vehicle image/icon
-  - Vehicle ID (localized format: "Vehículo X")
-  - Last known position
-  - Quick actions:
-    - Profile button (for future vehicle details/settings)
-    - Map button (opens map centered on the vehicle)
-- Features:
-  - Search functionality to filter vehicles
-  - Total vehicles counter in a floating circle
-  - Pull-to-refresh functionality
-  - Empty state view when no vehicles are available
-  - Error handling with retry options
+#### Vista de Flota (`FleetFragment`)
+- Muestra una lista de todos los vehículos con:
+  - Imagen/icono del vehículo
+  - ID del vehículo (formato localizado: "Vehículo X")
+  - Última posición conocida
+  - Acciones rápidas:
+    - Botón de perfil (para futuros detalles/configuración del vehículo)
+    - Botón de mapa (abre el mapa centrado en el vehículo con marcador resaltado)
+- Características:
+  - Funcionalidad de búsqueda para filtrar vehículos
+  - Contador total de vehículos en un círculo flotante
+  - Funcionalidad de actualización por deslizamiento
+  - Vista de estado vacío cuando no hay vehículos disponibles
+  - Manejo de errores con opciones de reintento
 
-### Data Flow
-1. **Initial Load**:
-   - Load vehicle IDs from configuration
-   - Fetch positions from API
-   - Store in Room database
-   - Update Firestore with current position and history
-   - Update UI
+### Flujo de Datos
+1. **Carga Inicial**:
+   - Cargar IDs de vehículos desde la configuración
+   - Obtener posiciones desde la API
+   - Almacenar en base de datos Room
+   - Actualizar Firestore con posición actual e historial
+   - Actualizar UI
 
-2. **Refresh Flow**:
-   - Cancel any ongoing refresh job
-   - Fetch new positions for all vehicles
-   - Update local and cloud storage
-   - Refresh UI
-   - Update total vehicles counter
+2. **Flujo de Actualización**:
+   - Cancelar cualquier trabajo de actualización en curso
+   - Obtener nuevas posiciones para todos los vehículos
+   - Actualizar almacenamiento local y en la nube
+   - Actualizar UI
+   - Actualizar contador total de vehículos
 
-3. **Search Flow**:
-   - User enters search text
-   - List is filtered in real-time
-   - Total counter updates to reflect filtered results
-   - Original list is preserved for reset
+3. **Flujo de Búsqueda**:
+   - Usuario ingresa texto de búsqueda
+   - La lista se filtra en tiempo real
+   - El contador total se actualiza para reflejar los resultados filtrados
+   - La lista original se conserva para reinicio
 
-4. **Error Handling**:
-   - Network errors show retry option
-   - Missing vehicles are logged
-   - API errors are handled gracefully
-   - Job cancellations are managed properly
+4. **Manejo de Errores**:
+   - Los errores de red muestran opción de reintento
+   - Los vehículos faltantes se registran en el log
+   - Los errores de API se manejan correctamente
+   - Las cancelaciones de trabajos se gestionan adecuadamente
 
-### Firebase Integration
-- Each vehicle has:
-  - Current position document
-  - History collection of positions
+### Integración con Firebase
+- Cada vehículo tiene:
+  - Documento de posición actual
+  - Colección de historial de posiciones
   ```json
   vehicles/
     ├── {vehicle_id}/
@@ -122,24 +125,27 @@ object ConfigurationReader {
     │           └── created_at: Long
   ```
 
-## Usage
-1. **View All Vehicles**:
-   - Open the Fleet section from the navigation drawer
-   - All vehicles are displayed in a scrollable list
-   - Use the search bar to filter vehicles
-   - View total vehicle count in the floating counter
-   - Pull down to refresh the list
+## Uso
+1. **Ver Todos los Vehículos**:
+   - Abrir la sección de Flota desde el menú de navegación
+   - Todos los vehículos se muestran en una lista desplazable
+   - Usar la barra de búsqueda para filtrar vehículos
+   - Ver el contador total de vehículos en el círculo flotante
+   - Deslizar hacia abajo para actualizar la lista
 
-2. **View Vehicle on Map**:
-   - Click the map button on any vehicle card
-   - The map will open centered on that vehicle
+2. **Ver Vehículo en el Mapa**:
+   - Hacer clic en el botón de mapa en cualquier tarjeta de vehículo
+   - El mapa se abrirá centrado en ese vehículo
+   - El marcador del vehículo seleccionado se resaltará en verde
+   - Otros vehículos serán visibles con marcadores predeterminados
+   - Usar el FAB para actualizar todas las posiciones
 
-3. **Refresh Positions**:
-   - Pull to refresh in the fleet view
-   - Click the FAB in the map view
-   - Positions auto-refresh when returning to either view
+3. **Actualizar Posiciones**:
+   - Deslizar para actualizar en la vista de flota
+   - Hacer clic en el FAB en la vista de mapa
+   - Las posiciones se actualizan automáticamente al regresar a cualquier vista
 
-## Dependencies
+## Dependencias
 ```gradle
 // Room
 implementation "androidx.room:room-runtime:2.6.1"
@@ -156,13 +162,13 @@ implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
 implementation 'com.google.android.material:material:1.11.0'
 ```
 
-## Error Handling
-- Network errors are caught and logged
-- UI remains responsive during refresh
-- Local cache ensures data availability
-- SwipeRefreshLayout indicates refresh state
-- Coroutine jobs are properly managed to prevent memory leaks
-- Detailed logging for debugging and monitoring
+## Manejo de Errores
+- Los errores de red son capturados y registrados
+- La UI permanece receptiva durante la actualización
+- El caché local asegura la disponibilidad de datos
+- SwipeRefreshLayout indica el estado de actualización
+- Los trabajos de corrutinas se gestionan adecuadamente para prevenir fugas de memoria
+- Registro detallado para depuración y monitoreo
 
 
 ## Error Handling
