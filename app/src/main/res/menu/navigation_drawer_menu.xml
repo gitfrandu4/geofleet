@@ -4,7 +4,7 @@
         <item
             android:id="@+id/nav_vehicle_positions"
             android:icon="@drawable/ic_location"
-            android:title="@string/vehicle_positions" />
+            android:title="@string/vehicle_positions_map" />
         <item
             android:id="@+id/nav_fleet"
             android:icon="@drawable/ic_fleet"

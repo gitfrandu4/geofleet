@@ -2,7 +2,8 @@
     <string name="app_name">GeoFleet</string>
 
     <!-- Navigation -->
-    <string name="vehicle_positions">Flota</string>
+    <string name="vehicle_positions_title">Flota</string>
+    <string name="vehicle_positions_map">Mapa</string>
     <string name="fleet">Flota</string>
     <string name="profile">Perfil</string>
     <string name="menu">Menú</string>

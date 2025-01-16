@@ -37,7 +37,7 @@ Defined in `nav_graph.xml`, specifies the navigation structure:
     <fragment
         android:id="@+id/nav_vehicle_positions"
         android:name="com.example.geofleet.ui.vehicles.VehiclePositionsFragment"
-        android:label="@string/vehicle_positions" />
+        android:label="@string/vehicle_positions_map" />
 
     <fragment
         android:id="@+id/nav_fleet"
