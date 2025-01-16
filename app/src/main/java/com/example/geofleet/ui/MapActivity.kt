@@ -27,10 +27,12 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
+import java.util.Properties
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
@@ -38,27 +40,38 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.Properties
 
 class MapActivity :
-    AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
+        AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
     private lateinit var binding: ActivityMapBinding
     private lateinit var map: GoogleMap
     private lateinit var database: AppDatabase
     private lateinit var auth: FirebaseAuth
     private lateinit var vehicleService: VehicleService
     private var customMarkerBitmap: BitmapDescriptor? = null
+    private var selectedVehicleId: String? = null
+    private var selectedVehicleMarkerBitmap: BitmapDescriptor? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMapBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Get selected vehicle ID from intent
+        selectedVehicleId = intent.getStringExtra("selected_vehicle_id")
+        Log.d("MapActivity", "Selected vehicle ID: $selectedVehicleId")
+
         // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
 
+        // Initialize Room database
+        database = AppDatabase.getDatabase(this)
+
         // Initialize Retrofit
         setupVehicleService()
+
+        // Create marker bitmaps
+        createMarkerBitmaps()
 
         // Check if user is signed in
         if (auth.currentUser == null) {
@@ -74,8 +87,6 @@ class MapActivity :
             text = auth.currentUser?.email ?: getString(R.string.nav_header_subtitle)
         }
 
-        database = AppDatabase.getDatabase(this)
-
         // Set up toolbar
         setSupportActionBar(binding.topAppBar)
         binding.topAppBar.setNavigationOnClickListener {
@@ -85,9 +96,6 @@ class MapActivity :
         // Set up navigation drawer
         binding.navigationView.setNavigationItemSelectedListener(this)
 
-        // Create custom marker bitmap
-        createCustomMarkerBitmap()
-
         // Set up the map
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -95,22 +103,36 @@ class MapActivity :
         setupFab()
     }
 
-    private fun createCustomMarkerBitmap() {
-        val markerView = layoutInflater.inflate(R.layout.custom_marker, null)
-        val markerIcon = markerView.findViewById<ImageView>(R.id.marker_icon)
-        markerIcon.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_vehicle_marker))
-        customMarkerBitmap = createCustomMarker(markerView)
+    private fun createMarkerBitmaps() {
+        // Create regular marker bitmap
+        val regularMarkerView = layoutInflater.inflate(R.layout.custom_marker, null)
+        regularMarkerView.findViewById<ImageView>(R.id.marker_icon).apply {
+            setImageDrawable(
+                    ContextCompat.getDrawable(this@MapActivity, R.drawable.ic_vehicle_marker)
+            )
+        }
+        customMarkerBitmap = createCustomMarker(regularMarkerView)
+
+        // Create selected marker bitmap with different color
+        val selectedMarkerView = layoutInflater.inflate(R.layout.custom_marker, null)
+        selectedMarkerView.findViewById<ImageView>(R.id.marker_icon).apply {
+            setImageDrawable(
+                    ContextCompat.getDrawable(this@MapActivity, R.drawable.ic_vehicle_marker)
+            )
+            setColorFilter(ContextCompat.getColor(this@MapActivity, R.color.success_color))
+        }
+        selectedVehicleMarkerBitmap = createCustomMarker(selectedMarkerView)
     }
 
     private fun createCustomMarker(view: View): BitmapDescriptor {
         view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
         view.layout(0, 0, view.measuredWidth, view.measuredHeight)
         val bitmap =
-            Bitmap.createBitmap(
-                view.measuredWidth,
-                view.measuredHeight,
-                Bitmap.Config.ARGB_8888
-            )
+                Bitmap.createBitmap(
+                        view.measuredWidth,
+                        view.measuredHeight,
+                        Bitmap.Config.ARGB_8888
+                )
         val canvas = Canvas(bitmap)
         view.draw(canvas)
         return BitmapDescriptorFactory.fromBitmap(bitmap)
@@ -135,24 +157,24 @@ class MapActivity :
             R.id.nav_fleet -> {
                 // Start MainActivity with fleet destination
                 val intent =
-                    Intent(this, MainActivity::class.java).apply {
-                        flags =
-                            Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                            Intent.FLAG_ACTIVITY_SINGLE_TOP
-                        putExtra("destination", "fleet")
-                    }
+                        Intent(this, MainActivity::class.java).apply {
+                            flags =
+                                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                                            Intent.FLAG_ACTIVITY_SINGLE_TOP
+                            putExtra("destination", "fleet")
+                        }
                 startActivity(intent)
                 finish()
             }
             R.id.nav_profile -> {
                 // Start MainActivity with profile destination
                 val intent =
-                    Intent(this, MainActivity::class.java).apply {
-                        flags =
-                            Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                            Intent.FLAG_ACTIVITY_SINGLE_TOP
-                        putExtra("destination", "profile")
-                    }
+                        Intent(this, MainActivity::class.java).apply {
+                            flags =
+                                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                                            Intent.FLAG_ACTIVITY_SINGLE_TOP
+                            putExtra("destination", "profile")
+                        }
                 startActivity(intent)
                 finish()
             }
@@ -179,8 +201,7 @@ class MapActivity :
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
         } else {
-            @Suppress("DEPRECATION")
-            super.onBackPressed()
+            @Suppress("DEPRECATION") super.onBackPressed()
         }
     }
 
@@ -193,38 +214,41 @@ class MapActivity :
             // Clear existing markers
             map.clear()
 
-            // Add markers for each vehicle
-            positions.forEach { position: VehiclePositionEntity ->
-                Log.d(
-                    "MapActivity",
-                    "Position for vehicle ${position.vehicleId}: lat=${position.latitude}, lng=${position.longitude}"
-                )
-                if (position.latitude != 0.0 || position.longitude != 0.0) {
-                    map.addMarker(
+            // Add markers for each position
+            positions.forEach { position ->
+                val latLng = LatLng(position.latitude, position.longitude)
+                val isSelected = position.vehicleId == selectedVehicleId
+
+                map.addMarker(
                         MarkerOptions()
-                            .position(LatLng(position.latitude, position.longitude))
-                            .icon(customMarkerBitmap)
-                            .title("Vehicle ${position.vehicleId}")
-                    )
+                                .position(latLng)
+                                .title("Vehicle ${position.vehicleId}")
+                                .icon(
+                                        if (isSelected) selectedVehicleMarkerBitmap
+                                        else customMarkerBitmap
+                                )
+                )
+
+                // If this is the selected vehicle, center the map on it
+                if (isSelected) {
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f))
                 }
             }
 
-            // Center map on first valid position
-            positions
-                .firstOrNull { position: VehiclePositionEntity ->
-                    position.latitude != 0.0 || position.longitude != 0.0
+            // Only adjust bounds if no vehicle is selected
+            if (selectedVehicleId == null && positions.isNotEmpty()) {
+                val builder = LatLngBounds.Builder()
+                positions.forEach { position ->
+                    builder.include(LatLng(position.latitude, position.longitude))
                 }
-                ?.let { position: VehiclePositionEntity ->
-                    map.animateCamera(
-                        CameraUpdateFactory.newLatLngZoom(
-                            LatLng(position.latitude, position.longitude),
-                            12f
-                        )
-                    )
-                }
+                val bounds = builder.build()
+                map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+            }
         } catch (e: Exception) {
             Log.e("MapActivity", "Error updating map", e)
-            throw e
+            Snackbar.make(binding.root, R.string.error_loading_positions, Snackbar.LENGTH_LONG)
+                    .setAction(R.string.action_retry) { lifecycleScope.launch { updateMap() } }
+                    .show()
         }
     }
 
@@ -248,44 +272,28 @@ class MapActivity :
                 val apiToken = "Bearer ${properties.getProperty("API_TOKEN")}"
                 Log.d("MapActivity", "Fetching positions for vehicles: $vehicleIds")
 
-                // Fetch all vehicle positions from API in parallel
-                val positions =
-                    vehicleIds
-                        .map { vehicleId ->
-                            async {
-                                try {
-                                    val position =
-                                        vehicleService.getVehiclePosition(
-                                            vehicleId,
-                                            apiToken
-                                        )
-                                    position?.let { pos ->
-                                        VehiclePositionEntity(
-                                            vehicleId = vehicleId,
-                                            latitude = pos.getLatitudeAsDouble(),
-                                            longitude = pos.getLongitudeAsDouble(),
-                                            timestamp = pos.timestamp
-                                        )
-                                    }
-                                        ?: run {
-                                            Log.w(
-                                                "MapActivity",
-                                                "No hay datos disponibles para el vehículo: $vehicleId"
-                                            )
-                                            null
-                                        }
-                                } catch (e: Exception) {
-                                    Log.e(
-                                        "MapActivity",
-                                        "Error fetching position for vehicle $vehicleId",
-                                        e
+                // Fetch positions in parallel
+                val positions = vehicleIds
+                    .map { vehicleId ->
+                        async {
+                            try {
+                                val position = vehicleService.getVehiclePosition(vehicleId, apiToken)
+                                if (position != null) {
+                                    VehiclePositionEntity(
+                                        vehicleId = vehicleId,
+                                        latitude = position.getLatitudeAsDouble(),
+                                        longitude = position.getLongitudeAsDouble(),
+                                        timestamp = position.timestamp
                                     )
-                                    null
-                                }
+                                } else null
+                            } catch (e: Exception) {
+                                Log.e("MapActivity", "Error fetching position for $vehicleId", e)
+                                null
                             }
                         }
-                        .awaitAll()
-                        .filterNotNull()
+                    }
+                    .awaitAll()
+                    .filterNotNull()
 
                 // Save to database
                 database.vehiclePositionDao().insertAll(positions)
@@ -294,7 +302,7 @@ class MapActivity :
                 updateMap()
             } catch (e: Exception) {
                 Log.e("MapActivity", "Error refreshing positions", e)
-                Snackbar.make(binding.root, R.string.network_error, Snackbar.LENGTH_LONG)
+                Snackbar.make(binding.root, R.string.error_loading_positions, Snackbar.LENGTH_LONG)
                     .setAction(R.string.action_retry) { refreshVehiclePositions() }
                     .show()
             } finally {
@@ -304,24 +312,24 @@ class MapActivity :
     }
 
     private fun setupVehicleService() {
-        val loggingInterceptor =
-            HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
+        val loggingInterceptor = HttpLoggingInterceptor().apply { 
+            level = HttpLoggingInterceptor.Level.BODY 
+        }
 
-        val client = OkHttpClient.Builder().addInterceptor(loggingInterceptor).build()
+        val client = OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .build()
 
-        val retrofit =
-            Retrofit.Builder()
-                .baseUrl(getBaseUrl())
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-
-        vehicleService = retrofit.create(VehicleService::class.java)
-    }
-
-    private fun getBaseUrl(): String {
         val properties = Properties()
         assets.open("config.properties").use { properties.load(it) }
-        return properties.getProperty("BASE_URL")
+        val baseUrl = properties.getProperty("BASE_URL")
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        vehicleService = retrofit.create(VehicleService::class.java)
     }
 }
