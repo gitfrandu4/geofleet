@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.geofleet.data.model.Vehicle
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
-import java.util.Date
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -70,7 +69,9 @@ class VehicleProfileViewModel : ViewModel() {
                     val wheelchair = vehicleData["wheelchair"] as? Boolean ?: false
                     Log.d(TAG, "📝 Wheelchair: $wheelchair")
 
-                    val inServiceFrom = vehicleData["in_service_from"] as? Date
+                    val inServiceFrom =
+                            (vehicleData["in_service_from"] as? com.google.firebase.Timestamp)
+                                    ?.toDate()
                     Log.d(TAG, "📝 In Service From: $inServiceFrom")
 
                     val stateStr = vehicleData["state"] as? String
@@ -132,7 +133,10 @@ class VehicleProfileViewModel : ViewModel() {
                                 "kilometers" to vehicle.kilometers,
                                 "max_passengers" to vehicle.maxPassengers,
                                 "wheelchair" to vehicle.wheelchair,
-                                "in_service_from" to vehicle.inServiceFrom,
+                                "in_service_from" to
+                                        vehicle.inServiceFrom?.let {
+                                            com.google.firebase.Timestamp(it.time / 1000, 0)
+                                        },
                                 "state" to Vehicle.VehicleState.toSpanishString(vehicle.state),
                                 "images" to vehicle.images
                         )
