@@ -281,8 +281,9 @@ class MapActivity :
                     .map { vehicleId ->
                         async {
                             try {
-                                val position = vehicleService.getVehiclePosition(vehicleId, apiToken)
-                                if (position != null) {
+                                val response = vehicleService.getVehiclePosition(vehicleId, apiToken)
+                                if (response.isSuccessful && response.body() != null) {
+                                    val position = response.body()!!
                                     VehiclePositionEntity(
                                         vehicleId = vehicleId,
                                         latitude = position.getLatitudeAsDouble(),
@@ -290,6 +291,7 @@ class MapActivity :
                                         timestamp = position.timestamp
                                     )
                                 } else {
+                                    Log.w("MapActivity", "No data available for vehicle $vehicleId (${response.code()} - ${response.message()})")
                                     null
                                 }
                             } catch (e: Exception) {

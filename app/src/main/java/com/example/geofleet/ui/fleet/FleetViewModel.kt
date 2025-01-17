@@ -17,10 +17,10 @@ import kotlinx.coroutines.tasks.await
 private const val TAG = "FleetViewModel"
 
 data class VehicleInfo(
-    val id: String,
-    val name: String,
-    val lastPosition: VehiclePositionEntity?,
-    val photoUrl: String? = null
+        val id: String,
+        val name: String,
+        val lastPosition: VehiclePositionEntity?,
+        val photoUrl: String? = null
 )
 
 class FleetViewModel(application: Application) : AndroidViewModel(application) {
@@ -53,11 +53,11 @@ class FleetViewModel(application: Application) : AndroidViewModel(application) {
                 } else {
                     vehicles.filter { vehicle ->
                         vehicle.name.contains(query, ignoreCase = true) ||
-                            vehicle.id.contains(query, ignoreCase = true)
+                                vehicle.id.contains(query, ignoreCase = true)
                     }
                 }
             }
-                .collect { filtered -> _filteredVehicles.value = filtered }
+                    .collect { filtered -> _filteredVehicles.value = filtered }
         }
     }
 
@@ -78,26 +78,29 @@ class FleetViewModel(application: Application) : AndroidViewModel(application) {
 
                 // Para cada vehículo, obtener su última posición de Room
                 val vehicleInfos =
-                    vehiclesSnapshot.documents.mapNotNull { doc ->
-                        try {
-                            val vehicleId = doc.getString("id") ?: return@mapNotNull null
-                            val name = doc.getString("name") ?: "Vehicle $vehicleId"
-                            val photoUrl = doc.getString("photo_url")
+                        vehiclesSnapshot.documents.mapNotNull { doc ->
+                            try {
+                                val vehicleId = doc.id
+                                val name = doc.getString("plate") ?: "Vehicle $vehicleId"
+                                val images =
+                                        (doc.get("images") as? List<*>)?.filterIsInstance<String>()
+                                                ?: emptyList()
+                                val photoUrl = images.firstOrNull()
 
-                            // Obtener última posición de Room
-                            val lastPosition = vehiclePositionDao.getLastPosition(vehicleId)
+                                // Obtener última posición de Room
+                                val lastPosition = vehiclePositionDao.getLastPosition(vehicleId)
 
-                            VehicleInfo(
-                                id = vehicleId,
-                                name = name,
-                                lastPosition = lastPosition,
-                                photoUrl = photoUrl
-                            )
-                        } catch (e: Exception) {
-                            Log.e(TAG, "❌ Error procesando vehículo ${doc.id}", e)
-                            null
+                                VehicleInfo(
+                                        id = vehicleId,
+                                        name = name,
+                                        lastPosition = lastPosition,
+                                        photoUrl = photoUrl
+                                )
+                            } catch (e: Exception) {
+                                Log.e(TAG, "❌ Error procesando vehículo ${doc.id}", e)
+                                null
+                            }
                         }
-                    }
 
                 Log.d(TAG, "✅ Lista de vehículos cargada: ${vehicleInfos.size} vehículos")
                 _vehicles.value = vehicleInfos

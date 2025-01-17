@@ -105,14 +105,14 @@ class VehiclePositionsViewModel(application: Application) : AndroidViewModel(app
                                             TAG,
                                             "🌐 Llamando a API para vehículo: $vehicleId"
                                         )
-                                        val position =
+                                        val response =
                                             vehicleService
                                                 .getVehiclePosition(
                                                     vehicleId,
                                                     apiToken
                                                 )
-                                        if (position != null
-                                        ) {
+                                        if (response.isSuccessful && response.body() != null) {
+                                            val position = response.body()!!
                                             Log.d(
                                                 TAG,
                                                 "✅ Posición recibida para $vehicleId: lat=${position.latitude}, lon=${position.longitude}"
@@ -124,7 +124,7 @@ class VehiclePositionsViewModel(application: Application) : AndroidViewModel(app
                                         } else {
                                             Log.w(
                                                 TAG,
-                                                "⚠️ No hay datos disponibles para el vehículo: $vehicleId"
+                                                "⚠️ No hay datos disponibles para el vehículo: $vehicleId (${response.code()} - ${response.message()})"
                                             )
                                             null
                                         }
