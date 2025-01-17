@@ -258,7 +258,7 @@ class VehiclePositionsViewModel(application: Application) : AndroidViewModel(app
                                 val newVehicle =
                                         mapOf(
                                                 "id" to vehicleId,
-                                                "name" to "Vehicle $vehicleId",
+                                                "name" to vehicleId,
                                                 "created_at" to System.currentTimeMillis(),
                                                 "current_position" to
                                                         mapOf(

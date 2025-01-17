@@ -5,9 +5,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.geofleet.R
 import com.example.geofleet.databinding.ItemVehicleBinding
-import com.squareup.picasso.Picasso
 
 class VehicleAdapter(
         private val onProfileClick: (String) -> Unit,
@@ -32,11 +32,12 @@ class VehicleAdapter(
 
                 // Cargar imagen del vehículo
                 if (vehicle.photoUrl != null) {
-                    Picasso.get()
+                    Glide.with(itemView.context)
                             .load(vehicle.photoUrl)
-                            .placeholder(R.drawable.vehicle_profile_placeholder)
-                            .error(R.drawable.vehicle_profile_placeholder)
-                            .into(vehicleImage)
+                            .placeholder(R.drawable.vehicle_list_placeholder)
+                            .error(R.drawable.vehicle_list_placeholder)
+                            .centerCrop()
+                            .into(binding.vehicleImage)
                 } else {
                     vehicleImage.setImageResource(R.drawable.vehicle_profile_placeholder)
                 }

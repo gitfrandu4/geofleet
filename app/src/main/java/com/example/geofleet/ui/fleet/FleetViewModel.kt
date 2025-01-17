@@ -81,7 +81,7 @@ class FleetViewModel(application: Application) : AndroidViewModel(application) {
                         vehiclesSnapshot.documents.mapNotNull { doc ->
                             try {
                                 val vehicleId = doc.id
-                                val name = doc.getString("plate") ?: "Vehicle $vehicleId"
+                                val name = doc.getString("plate") ?: vehicleId
                                 val images =
                                         (doc.get("images") as? List<*>)?.filterIsInstance<String>()
                                                 ?: emptyList()

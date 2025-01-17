@@ -21,7 +21,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
@@ -74,7 +73,6 @@ class VehicleProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupToolbar()
         setupGalleryRecyclerView()
         setupImageButtons()
         setupDatePicker()
@@ -86,10 +84,6 @@ class VehicleProfileFragment : Fragment() {
 
         observeViewModel()
         viewModel.loadVehicle(args.vehicleId)
-    }
-
-    private fun setupToolbar() {
-        binding.toolbar.setNavigationOnClickListener { findNavController().navigateUp() }
     }
 
     private fun setupGalleryRecyclerView() {
@@ -125,14 +119,14 @@ class VehicleProfileFragment : Fragment() {
 
     private fun setupDropdowns() {
         binding.apply {
-            // Vehicle Type Dropdown
-            val vehicleTypes = arrayOf("Truck", "Van", "Machinery", "Other")
+            // Vehicle Type Dropdown - Using Spanish types from resources
+            val vehicleTypes = requireContext().resources.getStringArray(R.array.vehicle_types)
             val vehicleTypeAdapter =
                     ArrayAdapter(requireContext(), R.layout.list_item, vehicleTypes)
             (vehicleTypeEditText as? AutoCompleteTextView)?.setAdapter(vehicleTypeAdapter)
 
-            // Vehicle State Dropdown
-            val states = Vehicle.VehicleState.values().map { state -> state.name }
+            // Vehicle State Dropdown - Using Spanish states from resources
+            val states = requireContext().resources.getStringArray(R.array.vehicle_states)
             val stateAdapter = ArrayAdapter(requireContext(), R.layout.list_item, states)
             (stateEditText as? AutoCompleteTextView)?.setAdapter(stateAdapter)
         }
@@ -307,7 +301,7 @@ class VehicleProfileFragment : Fragment() {
 
     private fun updateUI(vehicle: Vehicle) {
         binding.apply {
-            toolbar.title = vehicle.alias ?: vehicle.plate
+            vehicleIdText.text = getString(R.string.vehicle_id_format, vehicle.id)
 
             // Load profile image if available
             if (vehicle.images.isNotEmpty()) {
@@ -332,7 +326,7 @@ class VehicleProfileFragment : Fragment() {
             serviceDateEditText.setText(
                     vehicle.inServiceFrom?.let { date -> dateFormat.format(date) }
             )
-            stateEditText.setText(vehicle.state.name)
+            stateEditText.setText(Vehicle.VehicleState.toSpanishString(vehicle.state))
             galleryAdapter.submitList(vehicle.images)
         }
     }

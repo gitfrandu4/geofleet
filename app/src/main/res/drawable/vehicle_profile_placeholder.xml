@@ -1,25 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Light background -->
+    <!-- Simple gradient background -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#FAFAFA" />
+            <corners android:radius="12dp" />
+            <gradient
+                android:angle="135"
+                android:endColor="#F2632A"
+                android:centerColor="#FF7043"
+                android:startColor="#FBE9E7"
+                android:type="linear" />
         </shape>
-    </item>
-
-    <!-- Minimalist vehicle icon -->
-    <item
-        android:width="80dp"
-        android:height="80dp"
-        android:gravity="center">
-        <vector
-            android:width="80dp"
-            android:height="80dp"
-            android:viewportWidth="24"
-            android:viewportHeight="24">
-            <path
-                android:fillColor="#F2632A"
-                android:pathData="M18.92,6.01C18.72,5.42 18.16,5 17.5,5h-11c-0.66,0 -1.21,0.42 -1.42,1.01L3,12v8c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-1h12v1c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-8l-2.08,-5.99zM6.85,7h10.29l1.04,3H5.81l1.04,-3zM19,17H5v-5h14v5zM7.5,14.5c0,-0.83 0.67,-1.5 1.5,-1.5s1.5,0.67 1.5,1.5S9.83,16 9,16s-1.5,-0.67 -1.5,-1.5zM15,14.5c0,-0.83 0.67,-1.5 1.5,-1.5s1.5,0.67 1.5,1.5 -0.67,1.5 -1.5,1.5 -1.5,-0.67 -1.5,-1.5z" />
-        </vector>
     </item>
 </layer-list> 

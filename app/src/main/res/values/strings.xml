@@ -173,4 +173,7 @@
     <string name="camera_permission_explanation">Se necesita acceso a la cámara para tomar fotos del
         vehículo</string>
     <string name="camera_permission_denied">No se puede tomar fotos sin permiso de cámara</string>
+
+    <string name="vehicle_id_format">ID: %s</string>
+    <string name="change_profile_image">Cambiar imagen de perfil</string>
 </resources>
