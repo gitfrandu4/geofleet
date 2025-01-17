@@ -1,55 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Background with modern gradient -->
+    <!-- Light background -->
     <item>
         <shape android:shape="rectangle">
-            <gradient
-                android:angle="225"
-                android:endColor="#D84315"
-                android:centerColor="#F2632A"
-                android:startColor="#FF7043"
-                android:type="linear" />
+            <solid android:color="#FAFAFA" />
         </shape>
     </item>
 
-    <!-- Abstract pattern -->
-    <item>
-        <rotate android:fromDegrees="45">
-            <shape android:shape="line">
-                <stroke android:width="4dp"
-                    android:color="#33FFFFFF" />
-                <size android:height="40dp" />
-            </shape>
-        </rotate>
-    </item>
-
-    <!-- Circular background for icon -->
-    <item
-        android:width="140dp"
-        android:height="140dp"
-        android:gravity="center">
-        <shape android:shape="oval">
-            <gradient
-                android:type="radial"
-                android:gradientRadius="70dp"
-                android:startColor="#F2632A"
-                android:endColor="#D84315" />
-        </shape>
-    </item>
-
-    <!-- Inner circle glow -->
-    <item
-        android:width="120dp"
-        android:height="120dp"
-        android:gravity="center">
-        <shape android:shape="oval">
-            <stroke
-                android:width="2dp"
-                android:color="#80FFFFFF" />
-        </shape>
-    </item>
-
-    <!-- Vehicle icon with modern truck design -->
+    <!-- Minimalist vehicle icon -->
     <item
         android:width="80dp"
         android:height="80dp"
@@ -60,14 +18,8 @@
             android:viewportWidth="24"
             android:viewportHeight="24">
             <path
-                android:fillColor="#FFFFFF"
-                android:pathData="M18,18.5m-1.5,0a1.5,1.5 0,1 1,3 0a1.5,1.5 0,1 1,-3 0" />
-            <path
-                android:fillColor="#FFFFFF"
-                android:pathData="M6,18.5m-1.5,0a1.5,1.5 0,1 1,3 0a1.5,1.5 0,1 1,-3 0" />
-            <path
-                android:fillColor="#FFFFFF"
-                android:pathData="M20,8h-3V4H3C1.9,4 1,4.9 1,6v11h2c0,1.66 1.34,3 3,3s3,-1.34 3,-3h6c0,1.66 1.34,3 3,3s3,-1.34 3,-3h2v-5L20,8zM19.5,9.5l1.96,2.5H17V9.5H19.5z" />
+                android:fillColor="#F2632A"
+                android:pathData="M18.92,6.01C18.72,5.42 18.16,5 17.5,5h-11c-0.66,0 -1.21,0.42 -1.42,1.01L3,12v8c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-1h12v1c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-8l-2.08,-5.99zM6.85,7h10.29l1.04,3H5.81l1.04,-3zM19,17H5v-5h14v5zM7.5,14.5c0,-0.83 0.67,-1.5 1.5,-1.5s1.5,0.67 1.5,1.5S9.83,16 9,16s-1.5,-0.67 -1.5,-1.5zM15,14.5c0,-0.83 0.67,-1.5 1.5,-1.5s1.5,0.67 1.5,1.5 -0.67,1.5 -1.5,1.5 -1.5,-0.67 -1.5,-1.5z" />
         </vector>
     </item>
 </layer-list> 
