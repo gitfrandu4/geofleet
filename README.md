@@ -161,6 +161,8 @@ GeoFleet/
 
 ---
 
+---
+
 ## Requisitos Previos
 
 - **Software**  
@@ -209,13 +211,10 @@ android {
 }
 
 dependencies {
-    // Firebase
     implementation platform('com.google.firebase:firebase-bom:33.7.0')
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-firestore'
     implementation 'com.google.firebase:firebase-storage'
-
-    // Google Maps
     implementation 'com.google.android.gms:play-services-maps:18.2.0'
 
     // Jetpack & UI
@@ -224,8 +223,6 @@ dependencies {
 
     // Glide
     implementation 'com.github.bumptech.glide:glide:4.16.0'
-
-    // Room
     implementation 'androidx.room:room-runtime:2.6.1'
     kapt 'androidx.room:room-compiler:2.6.1'
 
