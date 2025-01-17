@@ -80,9 +80,12 @@ class FleetViewModel(application: Application) : AndroidViewModel(application) {
                 val vehicleInfos =
                     vehiclesSnapshot.documents.mapNotNull { doc ->
                         try {
-                            val vehicleId = doc.getString("id") ?: return@mapNotNull null
-                            val name = doc.getString("name") ?: "Vehicle $vehicleId"
-                            val photoUrl = doc.getString("photo_url")
+                            val vehicleId = doc.id
+                            val name = doc.getString("plate") ?: vehicleId
+                            val images =
+                                (doc.get("images") as? List<*>)?.filterIsInstance<String>()
+                                    ?: emptyList()
+                            val photoUrl = images.firstOrNull()
 
                             // Obtener última posición de Room
                             val lastPosition = vehiclePositionDao.getLastPosition(vehicleId)

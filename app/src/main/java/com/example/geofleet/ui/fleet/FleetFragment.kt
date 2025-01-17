@@ -14,6 +14,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.geofleet.R
 import com.example.geofleet.databinding.FragmentFleetBinding
@@ -49,7 +50,10 @@ class FleetFragment : Fragment() {
         adapter =
             VehicleAdapter(
                 onProfileClick = { vehicleId ->
-                    // TODO: Navigate to vehicle profile
+                    val action =
+                        FleetFragmentDirections
+                            .actionFleetFragmentToVehicleProfileFragment(vehicleId)
+                    findNavController().navigate(action)
                 },
                 onMapClick = { vehicleId ->
                     Log.d(TAG, "Map clicked for vehicle: $vehicleId")

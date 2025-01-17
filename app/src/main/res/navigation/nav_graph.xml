@@ -21,4 +21,18 @@
         android:name="com.example.geofleet.ui.profile.ProfileFragment"
         android:label="@string/profile" />
 
+    <fragment
+        android:id="@+id/vehicleProfileFragment"
+        android:name="com.example.geofleet.ui.vehicles.VehicleProfileFragment"
+        android:label="@string/vehicle_profile"
+        tools:layout="@layout/fragment_vehicle_profile">
+        <argument
+            android:name="vehicleId"
+            app:argType="string" />
+    </fragment>
+
+    <action
+        android:id="@+id/action_fleetFragment_to_vehicleProfileFragment"
+        app:destination="@id/vehicleProfileFragment" />
+
 </navigation> 

@@ -3,6 +3,7 @@ plugins {
     id 'kotlin-android'
     id 'com.google.gms.google-services'
     id 'kotlin-kapt'
+    id 'androidx.navigation.safeargs.kotlin'
 }
 
 android {
@@ -144,6 +145,13 @@ dependencies {
 
     // Picasso for image loading
     implementation "com.squareup.picasso:picasso:2.8"
+
+    // Material Design 3
+    implementation 'com.google.android.material:material:1.11.0'
+    
+    // Navigation with SafeArgs
+    implementation "androidx.navigation:navigation-fragment-ktx:2.7.7"
+    implementation "androidx.navigation:navigation-ui-ktx:2.7.7"
 } 
 
 kapt {

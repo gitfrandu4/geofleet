@@ -277,29 +277,43 @@ class MapActivity :
                 Log.d("MapActivity", "Fetching positions for vehicles: $vehicleIds")
 
                 // Fetch positions in parallel
-                val positions = vehicleIds
-                    .map { vehicleId ->
-                        async {
-                            try {
-                                val position = vehicleService.getVehiclePosition(vehicleId, apiToken)
-                                if (position != null) {
-                                    VehiclePositionEntity(
-                                        vehicleId = vehicleId,
-                                        latitude = position.getLatitudeAsDouble(),
-                                        longitude = position.getLongitudeAsDouble(),
-                                        timestamp = position.timestamp
+                val positions =
+                    vehicleIds
+                        .map { vehicleId ->
+                            async {
+                                try {
+                                    val response =
+                                        vehicleService.getVehiclePosition(
+                                            vehicleId,
+                                            apiToken
+                                        )
+                                    if (response.isSuccessful && response.body() != null) {
+                                        val position = response.body()!!
+                                        VehiclePositionEntity(
+                                            vehicleId = vehicleId,
+                                            latitude = position.getLatitudeAsDouble(),
+                                            longitude = position.getLongitudeAsDouble(),
+                                            timestamp = position.timestamp
+                                        )
+                                    } else {
+                                        Log.w(
+                                            "MapActivity",
+                                            "No data available for vehicle $vehicleId (${response.code()} - ${response.message()})"
+                                        )
+                                        null
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e(
+                                        "MapActivity",
+                                        "Error fetching position for $vehicleId",
+                                        e
                                     )
-                                } else {
                                     null
                                 }
-                            } catch (e: Exception) {
-                                Log.e("MapActivity", "Error fetching position for $vehicleId", e)
-                                null
                             }
                         }
-                    }
-                    .awaitAll()
-                    .filterNotNull()
+                        .awaitAll()
+                        .filterNotNull()
 
                 // Save to database
                 database.vehiclePositionDao().insertAll(positions)
@@ -318,21 +332,21 @@ class MapActivity :
     }
 
     private fun setupVehicleService() {
-        val loggingInterceptor = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
+        val loggingInterceptor =
+            HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
 
-        val client = OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
-            .build()
+        val client = OkHttpClient.Builder().addInterceptor(loggingInterceptor).build()
 
         val properties = Properties()
         assets.open("config.properties").use { properties.load(it) }
         val baseUrl = properties.getProperty("BASE_URL")
 
-        val retrofit = Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+        val retrofit =
+            Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
 
         vehicleService = retrofit.create(VehicleService::class.java)
     }
