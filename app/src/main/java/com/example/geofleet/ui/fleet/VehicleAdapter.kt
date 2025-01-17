@@ -10,8 +10,8 @@ import com.example.geofleet.R
 import com.example.geofleet.databinding.ItemVehicleBinding
 
 class VehicleAdapter(
-        private val onProfileClick: (String) -> Unit,
-        private val onMapClick: (String) -> Unit
+    private val onProfileClick: (String) -> Unit,
+    private val onMapClick: (String) -> Unit
 ) : ListAdapter<VehicleInfo, VehicleAdapter.VehicleViewHolder>(VehicleDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VehicleViewHolder {
@@ -24,7 +24,7 @@ class VehicleAdapter(
     }
 
     inner class VehicleViewHolder(private val binding: ItemVehicleBinding) :
-            RecyclerView.ViewHolder(binding.root) {
+        RecyclerView.ViewHolder(binding.root) {
 
         fun bind(vehicle: VehicleInfo) {
             binding.apply {
@@ -33,11 +33,11 @@ class VehicleAdapter(
                 // Cargar imagen del vehículo
                 if (vehicle.photoUrl != null) {
                     Glide.with(itemView.context)
-                            .load(vehicle.photoUrl)
-                            .placeholder(R.drawable.vehicle_list_placeholder)
-                            .error(R.drawable.vehicle_list_placeholder)
-                            .centerCrop()
-                            .into(binding.vehicleImage)
+                        .load(vehicle.photoUrl)
+                        .placeholder(R.drawable.vehicle_list_placeholder)
+                        .error(R.drawable.vehicle_list_placeholder)
+                        .centerCrop()
+                        .into(binding.vehicleImage)
                 } else {
                     vehicleImage.setImageResource(R.drawable.vehicle_profile_placeholder)
                 }
@@ -49,11 +49,11 @@ class VehicleAdapter(
                 // Mostrar última posición si está disponible
                 vehicle.lastPosition?.let { position ->
                     lastPosition.text =
-                            binding.root.context.getString(
-                                    R.string.last_position_format,
-                                    position.latitude,
-                                    position.longitude
-                            )
+                        binding.root.context.getString(
+                            R.string.last_position_format,
+                            position.latitude,
+                            position.longitude
+                        )
                 }
             }
         }
