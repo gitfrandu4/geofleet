@@ -62,6 +62,7 @@ class MapActivity :
     private var selectedVehicleId: String? = null
     private var selectedVehicleMarkerBitmap: BitmapDescriptor? = null
     private var refreshJob: Job? = null
+    private var isInitialLoad = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -265,14 +266,15 @@ class MapActivity :
                 }
             }
 
-            // Only adjust bounds if no vehicle is selected
-            if (selectedVehicleId == null && positions.isNotEmpty()) {
+            // Only adjust bounds if no vehicle is selected AND this is the initial load
+            if (selectedVehicleId == null && positions.isNotEmpty() && isInitialLoad) {
                 val builder = LatLngBounds.Builder()
                 positions.forEach { position ->
                     builder.include(LatLng(position.latitude, position.longitude))
                 }
                 val bounds = builder.build()
                 map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+                isInitialLoad = false
             }
         } catch (e: Exception) {
             Log.e("MapActivity", "Error updating map", e)
