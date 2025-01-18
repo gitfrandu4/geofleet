@@ -32,14 +32,13 @@
                     android:contentDescription="@string/vehicle_image"
                     android:scaleType="centerCrop" />
 
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/changeProfileImageButton"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom|end"
-                    android:layout_margin="16dp"
-                    android:contentDescription="@string/change_profile_image"
-                    app:srcCompat="@drawable/ic_camera" />
+                    android:orientation="horizontal"
+                    android:layout_margin="16dp">
+                </LinearLayout>
             </FrameLayout>
 
             <TextView

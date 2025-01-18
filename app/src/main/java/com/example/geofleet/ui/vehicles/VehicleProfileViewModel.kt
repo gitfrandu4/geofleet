@@ -7,12 +7,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.geofleet.data.model.Vehicle
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.util.UUID
 
 class VehicleProfileViewModel : ViewModel() {
     private val TAG = "VehicleProfileVM"
@@ -70,8 +70,8 @@ class VehicleProfileViewModel : ViewModel() {
                     Log.d(TAG, "📝 Wheelchair: $wheelchair")
 
                     val inServiceFrom =
-                        (vehicleData["in_service_from"] as? com.google.firebase.Timestamp)
-                            ?.toDate()
+                            (vehicleData["in_service_from"] as? com.google.firebase.Timestamp)
+                                    ?.toDate()
                     Log.d(TAG, "📝 In Service From: $inServiceFrom")
 
                     val stateStr = vehicleData["state"] as? String
@@ -80,27 +80,27 @@ class VehicleProfileViewModel : ViewModel() {
                     Log.d(TAG, "📝 Parsed State: $state")
 
                     val images =
-                        (vehicleData["images"] as? List<*>)?.filterIsInstance<String>()
-                            ?: emptyList()
+                            (vehicleData["images"] as? List<*>)?.filterIsInstance<String>()
+                                    ?: emptyList()
                     Log.d(TAG, "📝 Images: $images")
 
                     // Create vehicle object
                     val vehicle =
-                        Vehicle(
-                            id = vehicleId,
-                            plate = plate,
-                            alias = alias,
-                            brand = brand,
-                            model = model,
-                            vehicleType = vehicleType,
-                            chassisNumber = chassisNumber,
-                            kilometers = kilometers,
-                            maxPassengers = maxPassengers,
-                            wheelchair = wheelchair,
-                            inServiceFrom = inServiceFrom,
-                            state = state,
-                            images = images
-                        )
+                            Vehicle(
+                                    id = vehicleId,
+                                    plate = plate,
+                                    alias = alias,
+                                    brand = brand,
+                                    model = model,
+                                    vehicleType = vehicleType,
+                                    chassisNumber = chassisNumber,
+                                    kilometers = kilometers,
+                                    maxPassengers = maxPassengers,
+                                    wheelchair = wheelchair,
+                                    inServiceFrom = inServiceFrom,
+                                    state = state,
+                                    images = images
+                            )
 
                     Log.d(TAG, "✅ Successfully created Vehicle object: $vehicle")
                     _vehicle.value = vehicle
@@ -123,23 +123,23 @@ class VehicleProfileViewModel : ViewModel() {
 
                 // Create a map of the vehicle data without the ID field
                 val vehicleData =
-                    mapOf(
-                        "plate" to vehicle.plate,
-                        "alias" to vehicle.alias,
-                        "brand" to vehicle.brand,
-                        "model" to vehicle.model,
-                        "vehicle_type" to vehicle.vehicleType,
-                        "chassis_number" to vehicle.chassisNumber,
-                        "kilometers" to vehicle.kilometers,
-                        "max_passengers" to vehicle.maxPassengers,
-                        "wheelchair" to vehicle.wheelchair,
-                        "in_service_from" to
-                            vehicle.inServiceFrom?.let {
-                                com.google.firebase.Timestamp(it.time / 1000, 0)
-                            },
-                        "state" to Vehicle.VehicleState.toSpanishString(vehicle.state),
-                        "images" to vehicle.images
-                    )
+                        mapOf(
+                                "plate" to vehicle.plate,
+                                "alias" to vehicle.alias,
+                                "brand" to vehicle.brand,
+                                "model" to vehicle.model,
+                                "vehicle_type" to vehicle.vehicleType,
+                                "chassis_number" to vehicle.chassisNumber,
+                                "kilometers" to vehicle.kilometers,
+                                "max_passengers" to vehicle.maxPassengers,
+                                "wheelchair" to vehicle.wheelchair,
+                                "in_service_from" to
+                                        vehicle.inServiceFrom?.let {
+                                            com.google.firebase.Timestamp(it.time / 1000, 0)
+                                        },
+                                "state" to Vehicle.VehicleState.toSpanishString(vehicle.state),
+                                "images" to vehicle.images
+                        )
 
                 Log.d(TAG, "📄 Vehicle data to save: $vehicleData")
                 db.collection("vehicles").document(vehicle.id).set(vehicleData).await()
@@ -165,7 +165,7 @@ class VehicleProfileViewModel : ViewModel() {
                 Log.d(TAG, "🔄 Uploading image with ID: $imageId")
 
                 val imageRef =
-                    storage.reference.child("vehicles/${_vehicle.value?.id}/images/$imageId")
+                        storage.reference.child("vehicles/${_vehicle.value?.id}/images/$imageId")
                 imageRef.putFile(uri).await()
                 val downloadUrl = imageRef.downloadUrl.await().toString()
                 Log.d(TAG, "📸 Image uploaded, URL: $downloadUrl")
@@ -180,6 +180,39 @@ class VehicleProfileViewModel : ViewModel() {
             } catch (e: Exception) {
                 Log.e(TAG, "❌ Error uploading image: ${e.message}", e)
                 _error.value = "Error uploading image: ${e.message}"
+                _isSaving.value = false
+                _saveComplete.value = false
+            }
+        }
+    }
+
+    fun deleteImage(imageUrl: String) {
+        viewModelScope.launch {
+            try {
+                _isSaving.value = true
+
+                // Remove the image from storage
+                val storageRef = storage.getReferenceFromUrl(imageUrl)
+                storageRef.delete().await()
+
+                // Update vehicle with removed image
+                val currentVehicle = _vehicle.value ?: return@launch
+                val updatedImages = currentVehicle.images.filter { it != imageUrl }
+
+                // Update Firestore
+                db.collection("vehicles")
+                        .document(currentVehicle.id)
+                        .update("images", updatedImages)
+                        .await()
+
+                // Update local state
+                _vehicle.value = currentVehicle.copy(images = updatedImages)
+
+                _isSaving.value = false
+                _saveComplete.value = true
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Error deleting image: ${e.message}", e)
+                _error.value = "Error deleting image: ${e.message}"
                 _isSaving.value = false
                 _saveComplete.value = false
             }

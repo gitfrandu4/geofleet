@@ -9,12 +9,12 @@ import com.bumptech.glide.Glide
 import com.example.geofleet.R
 import com.example.geofleet.databinding.ItemGalleryImageBinding
 
-class GalleryAdapter :
-    ListAdapter<String, GalleryAdapter.GalleryViewHolder>(GalleryDiffCallback()) {
+class GalleryAdapter(private val onDeleteClick: (String) -> Unit = {}) :
+        ListAdapter<String, GalleryAdapter.GalleryViewHolder>(GalleryDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GalleryViewHolder {
         val binding =
-            ItemGalleryImageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                ItemGalleryImageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return GalleryViewHolder(binding)
     }
 
@@ -22,15 +22,17 @@ class GalleryAdapter :
         holder.bind(getItem(position))
     }
 
-    class GalleryViewHolder(private val binding: ItemGalleryImageBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    inner class GalleryViewHolder(private val binding: ItemGalleryImageBinding) :
+            RecyclerView.ViewHolder(binding.root) {
         fun bind(imageUrl: String) {
             Glide.with(binding.root)
-                .load(imageUrl)
-                .placeholder(R.drawable.ic_vehicle)
-                .error(R.drawable.ic_vehicle)
-                .centerCrop()
-                .into(binding.galleryImage)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.ic_vehicle)
+                    .error(R.drawable.ic_vehicle)
+                    .centerCrop()
+                    .into(binding.galleryImage)
+
+            binding.deleteImageButton.setOnClickListener { onDeleteClick(imageUrl) }
         }
     }
 }
