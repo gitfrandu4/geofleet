@@ -88,7 +88,9 @@ Aquí se presentan algunas capturas de pantalla de la aplicación **GeoFleet**, 
 |:-------------------:|
 | <img src="docs/images/detalle_vehiculo.jpg" alt="Detalle de Vehículo" height="400"> |
 
-Estas capturas ilustran la interfaz de usuario y las funcionalidades clave de la aplicación, como la visualización de mapas,
+Estas capturas ilustran la interfaz de usuario y las funcionalidades clave de la aplicación, como la visualización de mapas.
+
+Nota: La información de posición no está disponible en la captura de la lista de vehículos de manera intencional.
 
 ---
 
