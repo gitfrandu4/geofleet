@@ -8,6 +8,8 @@ import com.example.geofleet.data.dao.GeocodedAddressDao
 import com.example.geofleet.data.model.GeocodedAddress
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -46,47 +48,41 @@ class GeocodingRepository(
                 // Check if geocoding is available
                 if (!Geocoder.isPresent()) {
                     Log.w(TAG, "⚠️ Geocoder is not present on this device")
-                    return@withContext "$latitude, $longitude"
+                    return@withContext formatCoordinates(latitude, longitude)
                 }
 
                 val addressText =
                         try {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                                 // Use the new API for Android 13 and above
-                                var result = "$latitude, $longitude"
-                                geocoder.getFromLocation(latitude, longitude, 1) { addresses ->
-                                    if (addresses.isNotEmpty()) {
-                                        val address = addresses[0]
-                                        result = buildString {
-                                            address.thoroughfare?.let { append(it) }
-                                            address.subThoroughfare?.let { append(" ").append(it) }
-                                            address.locality?.let { append(", ").append(it) }
-                                        }
+                                suspendCoroutine { continuation ->
+                                    geocoder.getFromLocation(latitude, longitude, 1) { addresses ->
+                                        val result =
+                                                if (addresses.isNotEmpty()) {
+                                                    formatAddress(addresses[0])
+                                                } else {
+                                                    formatCoordinates(latitude, longitude)
+                                                }
+                                        continuation.resume(result)
                                     }
                                 }
-                                result
                             } else {
                                 // Use the old API for Android 12 and below
                                 @Suppress("DEPRECATION")
                                 val addresses = geocoder.getFromLocation(latitude, longitude, 1)
                                 if (addresses != null && addresses.isNotEmpty()) {
-                                    val address = addresses[0]
-                                    buildString {
-                                        address.thoroughfare?.let { append(it) }
-                                        address.subThoroughfare?.let { append(" ").append(it) }
-                                        address.locality?.let { append(", ").append(it) }
-                                    }
+                                    formatAddress(addresses[0])
                                 } else {
-                                    "$latitude, $longitude"
+                                    formatCoordinates(latitude, longitude)
                                 }
                             }
                         } catch (e: Exception) {
                             Log.e(TAG, "❌ Error geocoding address", e)
-                            return@withContext "$latitude, $longitude"
+                            formatCoordinates(latitude, longitude)
                         }
 
                 // Only cache if we got a proper address (not just coordinates)
-                if (addressText != "$latitude, $longitude") {
+                if (addressText != formatCoordinates(latitude, longitude)) {
                     Log.d(TAG, "💾 Caching address: $addressText")
                     try {
                         // Cache the result
@@ -105,14 +101,56 @@ class GeocodingRepository(
 
                 addressText
             } catch (e: Exception) {
-                Log.e(TAG, "❌ Error in getAddressFromCoordinates", e)
-                "$latitude, $longitude"
+                Log.e(TAG, "❌ Unexpected error in getAddressFromCoordinates", e)
+                formatCoordinates(latitude, longitude)
             }
         }
     }
 
-    private fun isAddressValid(geocodedAddress: GeocodedAddress): Boolean {
-        val expiryTime = System.currentTimeMillis() - cacheValidityPeriod
-        return geocodedAddress.timestamp > expiryTime
+    private fun formatAddress(address: android.location.Address): String {
+        return buildString {
+            // Try to build the most complete address possible
+            if (!address.thoroughfare.isNullOrBlank()) {
+                append(address.thoroughfare)
+                if (!address.subThoroughfare.isNullOrBlank()) {
+                    append(" ").append(address.subThoroughfare)
+                }
+            } else if (!address.featureName.isNullOrBlank() &&
+                            address.featureName != address.latitude.toString()
+            ) {
+                append(address.featureName)
+            }
+
+            if (!address.subLocality.isNullOrBlank()) {
+                if (isNotEmpty()) append(", ")
+                append(address.subLocality)
+            }
+
+            if (!address.locality.isNullOrBlank()) {
+                if (isNotEmpty()) append(", ")
+                append(address.locality)
+            } else if (!address.subAdminArea.isNullOrBlank()) {
+                if (isNotEmpty()) append(", ")
+                append(address.subAdminArea)
+            }
+
+            // If we couldn't build a meaningful address, use the first address line
+            if (isEmpty() && !address.getAddressLine(0).isNullOrBlank()) {
+                append(address.getAddressLine(0))
+            }
+
+            // If still empty, use coordinates as last resort
+            if (isEmpty()) {
+                append(formatCoordinates(address.latitude, address.longitude))
+            }
+        }
+    }
+
+    private fun formatCoordinates(latitude: Double, longitude: Double): String {
+        return String.format("%.6f, %.6f", latitude, longitude)
+    }
+
+    private fun isAddressValid(cachedAddress: GeocodedAddress): Boolean {
+        return System.currentTimeMillis() - cachedAddress.timestamp < cacheValidityPeriod
     }
 }
