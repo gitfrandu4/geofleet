@@ -18,7 +18,7 @@ class GeocodingRepository(
         private val context: Context,
         private val geocodedAddressDao: GeocodedAddressDao
 ) {
-    private val geocoder = Geocoder(context, Locale.getDefault())
+    private val geocoder by lazy { Geocoder(context, Locale.getDefault()) }
     private val cacheValidityPeriod = TimeUnit.DAYS.toMillis(7) // Cache addresses for 7 days
 
     suspend fun getAddressFromCoordinates(latitude: Double, longitude: Double): String {
@@ -43,35 +43,54 @@ class GeocodingRepository(
             // If not in cache or expired, geocode and cache
             try {
                 Log.d(TAG, "🌍 Starting geocoding process")
+
+                // Check if geocoding is available
+                if (!Geocoder.isPresent()) {
+                    Log.w(TAG, "⚠️ Geocoder is not present on this device")
+                    return@withContext "$latitude, $longitude"
+                }
+
                 val addressText = suspendCancellableCoroutine { continuation ->
-                    geocoder.getFromLocation(latitude, longitude, 1) { addressList ->
-                        val result =
-                                if (addressList.isNotEmpty()) {
-                                    val address = addressList[0]
-                                    Log.d(TAG, "📍 Got address: $address")
-                                    buildString {
-                                        address.thoroughfare?.let { append(it) }
-                                        address.subThoroughfare?.let { append(" ").append(it) }
-                                        address.locality?.let { append(", ").append(it) }
+                    try {
+                        geocoder.getFromLocation(latitude, longitude, 1) { addressList ->
+                            val result =
+                                    if (addressList.isNotEmpty()) {
+                                        val address = addressList[0]
+                                        Log.d(TAG, "📍 Got address: $address")
+                                        buildString {
+                                            address.thoroughfare?.let { append(it) }
+                                            address.subThoroughfare?.let { append(" ").append(it) }
+                                            address.locality?.let { append(", ").append(it) }
+                                        }
+                                    } else {
+                                        Log.w(TAG, "⚠️ No address found, using coordinates")
+                                        "$latitude, $longitude"
                                     }
-                                } else {
-                                    Log.w(TAG, "⚠️ No address found, using coordinates")
-                                    "$latitude, $longitude"
-                                }
-                        continuation.resume(result)
+                            continuation.resume(result)
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "❌ Error in geocoding callback", e)
+                        continuation.resume("$latitude, $longitude")
                     }
                 }
 
-                Log.d(TAG, "💾 Caching address: $addressText")
-                // Cache the result
-                geocodedAddressDao.insert(
-                        GeocodedAddress(coordinates = coordinates, address = addressText)
-                )
+                // Only cache if we got a proper address (not just coordinates)
+                if (addressText != "$latitude, $longitude") {
+                    Log.d(TAG, "💾 Caching address: $addressText")
+                    try {
+                        // Cache the result
+                        geocodedAddressDao.insert(
+                                GeocodedAddress(coordinates = coordinates, address = addressText)
+                        )
 
-                // Clean up old cached addresses
-                val expiryTime = System.currentTimeMillis() - cacheValidityPeriod
-                geocodedAddressDao.deleteOldAddresses(expiryTime)
-                Log.d(TAG, "🧹 Cleaned up old cached addresses")
+                        // Clean up old cached addresses
+                        val expiryTime = System.currentTimeMillis() - cacheValidityPeriod
+                        geocodedAddressDao.deleteOldAddresses(expiryTime)
+                        Log.d(TAG, "🧹 Cleaned up old cached addresses")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "❌ Error caching address", e)
+                    }
+                }
 
                 return@withContext addressText
             } catch (e: Exception) {
