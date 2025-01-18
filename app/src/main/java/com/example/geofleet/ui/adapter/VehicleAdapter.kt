@@ -20,9 +20,9 @@ import kotlinx.coroutines.launch
 private const val TAG = "VehicleAdapter"
 
 class VehicleAdapter(
-        private val lifecycleOwner: LifecycleOwner,
-        private val geocodingRepository: GeocodingRepository,
-        private val onItemClick: (VehicleInfo) -> Unit
+    private val lifecycleOwner: LifecycleOwner,
+    private val geocodingRepository: GeocodingRepository,
+    private val onItemClick: (VehicleInfo) -> Unit
 ) : ListAdapter<VehicleInfo, VehicleAdapter.VehicleViewHolder>(VehicleDiffCallback()) {
 
     private val db = FirebaseFirestore.getInstance()
@@ -37,7 +37,7 @@ class VehicleAdapter(
     }
 
     inner class VehicleViewHolder(private val binding: ItemVehicleBinding) :
-            RecyclerView.ViewHolder(binding.root) {
+        RecyclerView.ViewHolder(binding.root) {
 
         init {
             binding.root.setOnClickListener {
@@ -57,14 +57,14 @@ class VehicleAdapter(
 
         private fun showDeleteConfirmation(vehicle: VehicleInfo) {
             MaterialAlertDialogBuilder(binding.root.context)
-                    .setTitle(R.string.delete_vehicle)
-                    .setMessage(R.string.delete_vehicle_confirmation)
-                    .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-                    .setPositiveButton(R.string.delete) { dialog, _ ->
-                        deleteVehicle(vehicle)
-                        dialog.dismiss()
-                    }
-                    .show()
+                .setTitle(R.string.delete_vehicle)
+                .setMessage(R.string.delete_vehicle_confirmation)
+                .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+                .setPositiveButton(R.string.delete) { dialog, _ ->
+                    deleteVehicle(vehicle)
+                    dialog.dismiss()
+                }
+                .show()
         }
 
         private fun deleteVehicle(vehicle: VehicleInfo) {
@@ -72,36 +72,36 @@ class VehicleAdapter(
             binding.deleteButton.isEnabled = false
 
             db.collection("vehicles")
-                    .document(vehicle.id)
-                    .delete()
-                    .addOnSuccessListener {
-                        Log.d(TAG, "✅ Vehicle deleted successfully: ${vehicle.id}")
-                        val currentList = currentList.toMutableList()
-                        val position = currentList.indexOfFirst { it.id == vehicle.id }
-                        if (position != -1) {
-                            currentList.removeAt(position)
-                            submitList(currentList)
-                        }
-                        Snackbar.make(
-                                        binding.root,
-                                        binding.root.context.getString(
-                                                R.string.vehicle_deleted,
-                                                vehicle.id
-                                        ),
-                                        Snackbar.LENGTH_LONG
-                                )
-                                .show()
+                .document(vehicle.id)
+                .delete()
+                .addOnSuccessListener {
+                    Log.d(TAG, "✅ Vehicle deleted successfully: ${vehicle.id}")
+                    val currentList = currentList.toMutableList()
+                    val position = currentList.indexOfFirst { it.id == vehicle.id }
+                    if (position != -1) {
+                        currentList.removeAt(position)
+                        submitList(currentList)
                     }
-                    .addOnFailureListener { e ->
-                        Log.e(TAG, "❌ Error deleting vehicle: ${vehicle.id}", e)
-                        binding.deleteButton.isEnabled = true
-                        Snackbar.make(
-                                        binding.root,
-                                        R.string.error_deleting_vehicle,
-                                        Snackbar.LENGTH_LONG
-                                )
-                                .show()
-                    }
+                    Snackbar.make(
+                        binding.root,
+                        binding.root.context.getString(
+                            R.string.vehicle_deleted,
+                            vehicle.id
+                        ),
+                        Snackbar.LENGTH_LONG
+                    )
+                        .show()
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "❌ Error deleting vehicle: ${vehicle.id}", e)
+                    binding.deleteButton.isEnabled = true
+                    Snackbar.make(
+                        binding.root,
+                        R.string.error_deleting_vehicle,
+                        Snackbar.LENGTH_LONG
+                    )
+                        .show()
+                }
         }
 
         fun bind(vehicle: VehicleInfo) {

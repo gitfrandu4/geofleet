@@ -9,9 +9,9 @@ import com.example.geofleet.data.dao.GeocodedAddressDao
 import com.example.geofleet.data.model.GeocodedAddress
 
 @Database(
-        entities = [VehiclePositionEntity::class, UserEntity::class, GeocodedAddress::class],
-        version = 6,
-        exportSchema = true
+    entities = [VehiclePositionEntity::class, UserEntity::class, GeocodedAddress::class],
+    version = 6,
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -24,18 +24,18 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE
-                    ?: synchronized(this) {
-                        val instance =
-                                Room.databaseBuilder(
-                                                context.applicationContext,
-                                                AppDatabase::class.java,
-                                                "geofleet_database"
-                                        )
-                                        .fallbackToDestructiveMigration()
-                                        .build()
-                        INSTANCE = instance
-                        instance
-                    }
+                ?: synchronized(this) {
+                    val instance =
+                        Room.databaseBuilder(
+                            context.applicationContext,
+                            AppDatabase::class.java,
+                            "geofleet_database"
+                        )
+                            .fallbackToDestructiveMigration()
+                            .build()
+                    INSTANCE = instance
+                    instance
+                }
         }
     }
 }

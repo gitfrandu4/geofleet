@@ -20,9 +20,9 @@ import kotlinx.coroutines.launch
 private const val TAG = "VehicleAdapter"
 
 class VehicleAdapter(
-        private val onProfileClick: (String) -> Unit,
-        private val onMapClick: (String) -> Unit,
-        private val geocodingRepository: GeocodingRepository
+    private val onProfileClick: (String) -> Unit,
+    private val onMapClick: (String) -> Unit,
+    private val geocodingRepository: GeocodingRepository
 ) : ListAdapter<VehicleInfo, VehicleAdapter.VehicleViewHolder>(VehicleDiffCallback()) {
 
     private val db = FirebaseFirestore.getInstance()
@@ -37,7 +37,7 @@ class VehicleAdapter(
     }
 
     inner class VehicleViewHolder(private val binding: ItemVehicleBinding) :
-            RecyclerView.ViewHolder(binding.root) {
+        RecyclerView.ViewHolder(binding.root) {
 
         init {
             binding.profileButton.setOnClickListener {
@@ -64,14 +64,14 @@ class VehicleAdapter(
 
         private fun showDeleteConfirmation(vehicle: VehicleInfo) {
             MaterialAlertDialogBuilder(binding.root.context)
-                    .setTitle(R.string.delete_vehicle)
-                    .setMessage(R.string.delete_vehicle_confirmation)
-                    .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-                    .setPositiveButton(R.string.delete) { dialog, _ ->
-                        deleteVehicle(vehicle)
-                        dialog.dismiss()
-                    }
-                    .show()
+                .setTitle(R.string.delete_vehicle)
+                .setMessage(R.string.delete_vehicle_confirmation)
+                .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+                .setPositiveButton(R.string.delete) { dialog, _ ->
+                    deleteVehicle(vehicle)
+                    dialog.dismiss()
+                }
+                .show()
         }
 
         private fun deleteVehicle(vehicle: VehicleInfo) {
@@ -79,36 +79,36 @@ class VehicleAdapter(
             binding.deleteButton.isEnabled = false
 
             db.collection("vehicles")
-                    .document(vehicle.id)
-                    .delete()
-                    .addOnSuccessListener {
-                        Log.d(TAG, "✅ Vehicle deleted successfully: ${vehicle.id}")
-                        val currentList = currentList.toMutableList()
-                        val position = currentList.indexOfFirst { it.id == vehicle.id }
-                        if (position != -1) {
-                            currentList.removeAt(position)
-                            submitList(currentList)
-                        }
-                        Snackbar.make(
-                                        binding.root,
-                                        binding.root.context.getString(
-                                                R.string.vehicle_deleted,
-                                                vehicle.id
-                                        ),
-                                        Snackbar.LENGTH_LONG
-                                )
-                                .show()
+                .document(vehicle.id)
+                .delete()
+                .addOnSuccessListener {
+                    Log.d(TAG, "✅ Vehicle deleted successfully: ${vehicle.id}")
+                    val currentList = currentList.toMutableList()
+                    val position = currentList.indexOfFirst { it.id == vehicle.id }
+                    if (position != -1) {
+                        currentList.removeAt(position)
+                        submitList(currentList)
                     }
-                    .addOnFailureListener { e ->
-                        Log.e(TAG, "❌ Error deleting vehicle: ${vehicle.id}", e)
-                        binding.deleteButton.isEnabled = true
-                        Snackbar.make(
-                                        binding.root,
-                                        R.string.error_deleting_vehicle,
-                                        Snackbar.LENGTH_LONG
-                                )
-                                .show()
-                    }
+                    Snackbar.make(
+                        binding.root,
+                        binding.root.context.getString(
+                            R.string.vehicle_deleted,
+                            vehicle.id
+                        ),
+                        Snackbar.LENGTH_LONG
+                    )
+                        .show()
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "❌ Error deleting vehicle: ${vehicle.id}", e)
+                    binding.deleteButton.isEnabled = true
+                    Snackbar.make(
+                        binding.root,
+                        R.string.error_deleting_vehicle,
+                        Snackbar.LENGTH_LONG
+                    )
+                        .show()
+                }
         }
 
         fun bind(vehicle: VehicleInfo) {
@@ -121,11 +121,11 @@ class VehicleAdapter(
                 if (vehicle.photoUrl != null) {
                     Log.d(TAG, "Loading photo for vehicle ${vehicle.id}: ${vehicle.photoUrl}")
                     Glide.with(itemView.context)
-                            .load(vehicle.photoUrl)
-                            .placeholder(R.drawable.vehicle_list_placeholder)
-                            .error(R.drawable.vehicle_list_placeholder)
-                            .centerCrop()
-                            .into(binding.vehicleImage)
+                        .load(vehicle.photoUrl)
+                        .placeholder(R.drawable.vehicle_list_placeholder)
+                        .error(R.drawable.vehicle_list_placeholder)
+                        .centerCrop()
+                        .into(binding.vehicleImage)
                 } else {
                     Log.d(TAG, "No photo URL for vehicle ${vehicle.id}, using placeholder")
                     vehicleImage.setImageResource(R.drawable.vehicle_profile_placeholder)
@@ -134,8 +134,8 @@ class VehicleAdapter(
                 // Show last position with geocoded address
                 if (vehicle.lastPosition != null) {
                     Log.d(
-                            TAG,
-                            "Last position for vehicle ${vehicle.id}: lat=${vehicle.lastPosition.latitude}, lon=${vehicle.lastPosition.longitude}"
+                        TAG,
+                        "Last position for vehicle ${vehicle.id}: lat=${vehicle.lastPosition.latitude}, lon=${vehicle.lastPosition.longitude}"
                     )
 
                     // Show loading state
@@ -146,32 +146,32 @@ class VehicleAdapter(
                         try {
                             Log.d(TAG, "Fetching address for vehicle ${vehicle.id}")
                             val address =
-                                    geocodingRepository.getAddressFromCoordinates(
-                                            vehicle.lastPosition.latitude,
-                                            vehicle.lastPosition.longitude
-                                    )
+                                geocodingRepository.getAddressFromCoordinates(
+                                    vehicle.lastPosition.latitude,
+                                    vehicle.lastPosition.longitude
+                                )
                             Log.d(TAG, "Got address for vehicle ${vehicle.id}: $address")
                             lastPosition.text = address
                         } catch (e: Exception) {
                             Log.e(TAG, "Error getting address for vehicle ${vehicle.id}", e)
                             // On error, show coordinates as fallback
                             lastPosition.text =
-                                    root.context.getString(
-                                            R.string.last_position_format,
-                                            vehicle.lastPosition.latitude,
-                                            vehicle.lastPosition.longitude
-                                    )
+                                root.context.getString(
+                                    R.string.last_position_format,
+                                    vehicle.lastPosition.latitude,
+                                    vehicle.lastPosition.longitude
+                                )
                         }
                     }
-                            ?: run {
-                                Log.d(TAG, "Context is not LifecycleOwner, showing coordinates")
-                                lastPosition.text =
-                                        root.context.getString(
-                                                R.string.last_position_format,
-                                                vehicle.lastPosition.latitude,
-                                                vehicle.lastPosition.longitude
-                                        )
-                            }
+                        ?: run {
+                            Log.d(TAG, "Context is not LifecycleOwner, showing coordinates")
+                            lastPosition.text =
+                                root.context.getString(
+                                    R.string.last_position_format,
+                                    vehicle.lastPosition.latitude,
+                                    vehicle.lastPosition.longitude
+                                )
+                        }
                 } else {
                     Log.d(TAG, "No position available for vehicle ${vehicle.id}")
                     lastPosition.text = root.context.getString(R.string.no_position_available)

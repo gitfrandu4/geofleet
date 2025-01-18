@@ -6,18 +6,18 @@ import android.os.Build
 import android.util.Log
 import com.example.geofleet.data.dao.GeocodedAddressDao
 import com.example.geofleet.data.model.GeocodedAddress
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 private const val TAG = "GeocodingRepository"
 
 class GeocodingRepository(
-        private val context: Context,
-        private val geocodedAddressDao: GeocodedAddressDao
+    private val context: Context,
+    private val geocodedAddressDao: GeocodedAddressDao
 ) {
     private val geocoder by lazy { Geocoder(context, Locale.getDefault()) }
     private val cacheValidityPeriod = TimeUnit.DAYS.toMillis(7) // Cache addresses for 7 days
@@ -52,34 +52,34 @@ class GeocodingRepository(
                 }
 
                 val addressText =
-                        try {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                // Use the new API for Android 13 and above
-                                suspendCoroutine { continuation ->
-                                    geocoder.getFromLocation(latitude, longitude, 1) { addresses ->
-                                        val result =
-                                                if (addresses.isNotEmpty()) {
-                                                    formatAddress(addresses[0])
-                                                } else {
-                                                    formatCoordinates(latitude, longitude)
-                                                }
-                                        continuation.resume(result)
-                                    }
-                                }
-                            } else {
-                                // Use the old API for Android 12 and below
-                                @Suppress("DEPRECATION")
-                                val addresses = geocoder.getFromLocation(latitude, longitude, 1)
-                                if (addresses != null && addresses.isNotEmpty()) {
-                                    formatAddress(addresses[0])
-                                } else {
-                                    formatCoordinates(latitude, longitude)
+                    try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            // Use the new API for Android 13 and above
+                            suspendCoroutine { continuation ->
+                                geocoder.getFromLocation(latitude, longitude, 1) { addresses ->
+                                    val result =
+                                        if (addresses.isNotEmpty()) {
+                                            formatAddress(addresses[0])
+                                        } else {
+                                            formatCoordinates(latitude, longitude)
+                                        }
+                                    continuation.resume(result)
                                 }
                             }
-                        } catch (e: Exception) {
-                            Log.e(TAG, "❌ Error geocoding address", e)
-                            formatCoordinates(latitude, longitude)
+                        } else {
+                            // Use the old API for Android 12 and below
+                            @Suppress("DEPRECATION")
+                            val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+                            if (addresses != null && addresses.isNotEmpty()) {
+                                formatAddress(addresses[0])
+                            } else {
+                                formatCoordinates(latitude, longitude)
+                            }
                         }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "❌ Error geocoding address", e)
+                        formatCoordinates(latitude, longitude)
+                    }
 
                 // Only cache if we got a proper address (not just coordinates)
                 if (addressText != formatCoordinates(latitude, longitude)) {
@@ -87,7 +87,7 @@ class GeocodingRepository(
                     try {
                         // Cache the result
                         geocodedAddressDao.insert(
-                                GeocodedAddress(coordinates = coordinates, address = addressText)
+                            GeocodedAddress(coordinates = coordinates, address = addressText)
                         )
 
                         // Clean up old cached addresses
@@ -116,7 +116,7 @@ class GeocodingRepository(
                     append(" ").append(address.subThoroughfare)
                 }
             } else if (!address.featureName.isNullOrBlank() &&
-                            address.featureName != address.latitude.toString()
+                address.featureName != address.latitude.toString()
             ) {
                 append(address.featureName)
             }
