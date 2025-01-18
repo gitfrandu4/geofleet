@@ -63,22 +63,9 @@
             android:exported="false" />
 
         <activity
-            android:name=".ui.VehiclePositionsActivity"
-            android:exported="false" />
-
-        <activity
             android:name=".ui.MapActivity"
             android:exported="false"
             android:label="@string/vehicle_positions_map" />
-
-        <!-- Configuración del servicio de Firebase Cloud Messaging -->
-        <!-- <service
-            android:name=".service.MyFirebaseMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service> -->
 
         <!-- FileProvider para manejo de fotos -->
         <provider
