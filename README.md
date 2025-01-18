@@ -7,6 +7,7 @@
   - [Descripción General](#descripción-general)
   - [Objetivos del Proyecto](#objetivos-del-proyecto)
   - [Arquitectura y Patrones de Diseño](#arquitectura-y-patrones-de-diseño)
+    - [Arquitectura](#arquitectura)
     - [Patrones y Principios Clave](#patrones-y-principios-clave)
     - [Manejo de Imágenes de Perfil](#manejo-de-imágenes-de-perfil)
   - [Funcionalidades Clave](#funcionalidades-clave)
@@ -85,6 +86,31 @@ El proyecto se ha diseñado siguiendo **MVVM** y elementos de **Clean Architectu
 
 - **Repositories**  
   Se encargan de orquestar la obtención y el envío de datos a fuentes como **Room**, **APIs** y **Firebase**.
+
+
+### Arquitectura
+
+![Arquitectura de GeoFleet](docs/images/arquitectura-geofleet.png)
+
+La arquitectura de **GeoFleet** está diseñada para maximizar la eficiencia y escalabilidad, utilizando un enfoque modular basado en el patrón **MVVM** (Model-View-ViewModel). La aplicación se compone de las siguientes capas:
+
+1. **Capa de Interfaz de Usuario**: 
+   - Incluye actividades y fragmentos que interactúan directamente con el usuario.
+   - Utiliza **Binding** y **Observables** para mantener la UI sincronizada con los datos.
+
+2. **ViewModels**:
+   - Actúan como intermediarios entre la UI y la capa de datos.
+   - Gestionan la lógica de presentación y el estado de la aplicación.
+
+3. **Capa de Repositorio**:
+   - Encapsula la lógica de negocio y maneja la obtención y almacenamiento de datos.
+   - Interactúa con fuentes de datos locales (Room Database) y remotas (Firebase, APIs externas).
+
+4. **Servicios de Firebase**:
+   - Proporcionan autenticación y sincronización en tiempo real a través de **Cloud Firestore**.
+
+5. **Integración Continua y Despliegue**:
+   - Utiliza GitHub Actions para automatizar la integración y despliegue continuo, asegurando que el código se mantenga en alta calidad.
 
 ### Patrones y Principios Clave
 
@@ -387,39 +413,50 @@ Los desarrolladores pueden utilizar comandos especiales en los comentarios:
 
 ## Conclusiones
 
-El desarrollo de **GeoFleet** ha sido un viaje enriquecedor, especialmente al transitar desde un entorno de desarrollo web hacia el ecosistema de aplicaciones móviles nativas en Android. A continuación, se destacan algunas conclusiones clave:
+La creación de **GeoFleet** ha sido una experiencia enriquecedora, sobre todo al transitar desde el entorno web hacia el ecosistema de aplicaciones nativas para Android. A continuación, se destacan los puntos más relevantes:
 
-1. **Desafíos de Integración**: 
-   - Como desarrollador experimentado en web, uno de los principales desafíos fue adaptar ciertas características al entorno Android, como la gestión de permisos y la optimización de la interfaz de usuario para diferentes dispositivos y resoluciones.
-   - La integración de servicios nativos como Firebase y Google Maps presentó una curva de aprendizaje, pero resultó en una aplicación más robusta y eficiente.
+1. **Desafíos de Integración**
 
-2. **Satisfacción del Resultado Final**:
-   - Comparado con una web adaptada al móvil, la aplicación nativa ofrece una experiencia de usuario más fluida y rápida, aprovechando al máximo las capacidades del dispositivo.
-   - La capacidad de trabajar offline y la sincronización en tiempo real son características que destacan en la aplicación nativa, proporcionando un valor añadido significativo.
+- Viniendo de trabajar enfocado en el desarrollo web, uno de los mayores desafíos fue adaptar características propias de ese entorno al mundo Android —sobre todo en optimización de la interfaz para dispositivos de distintas resoluciones—, lo que requirió un proceso de aprendizaje sustancial.
 
-3. **Uso de Inteligencia Artificial**:
-   - La integración de herramientas de IA en el flujo de desarrollo ha sido fundamental. Desde el uso de **Cursor** para mejorar la eficiencia del código, hasta **OpenAI** para revisiones automáticas y **Copilot** para sugerencias de código, cada paso del desarrollo se ha beneficiado de estas tecnologías.
-   - El sistema de CI/CD automatizado con GitHub Actions y AI ha permitido mantener altos estándares de calidad, detectando y corrigiendo problemas antes de que lleguen a producción.
+- La integración de servicios nativos como Firebase y Google Maps se tradujo en una aplicación final más robusta y eficiente.
 
-4. **Enfoque Nativo Android**:  
-   - Al basarse en Kotlin y el ecosistema oficial de Android (Jetpack, Google Maps SDK), se aprovechan las optimizaciones y buenas prácticas de la plataforma.  
-   - Permite acceso directo a APIS específicas de Android y una personalización completa de la UI según *Material Design*.
+2. **Satisfacción con el Resultado**
 
-5. **Clean Architecture y MVVM**:  
-   - Facilitan la separación de responsabilidades y el escalado de la app, garantizando que nuevas funcionalidades (p. ej. notificaciones push, nuevos módulos de datos) puedan integrarse sin romper la estructura existente.  
-   - La capa de datos se abstrae mediante repositorios, lo que permite intercambiar Firebase por cualquier otro backend sin grandes cambios en la UI.
+- En comparación con un sitio web responsivo, la aplicación nativa ofrece una experiencia de usuario más fluida y ágil, aprovechando al máximo las capacidades del dispositivo.
 
-6. **Offline First**:  
-   - La inclusión de **Room Database** asegura que la aplicación siga funcionando en entornos con poca o nula conectividad, lo que es esencial en contextos industriales o de logística donde la cobertura de red puede ser limitada.
+- La posibilidad de trabajar sin conexión y la sincronización en tiempo real añaden un valor diferencial considerable.
 
-7. **Sincronización en Tiempo Real**:  
-   - El uso de **Firebase Firestore** proporciona actualizaciones inmediatas a todos los clientes conectados, mejorando la coordinación de la flota y la toma de decisiones en tiempo real.
+3. **Rol de la Inteligencia Artificial**
 
-8. **Mejoras de Rendimiento**:  
-   - Se utilizan **Coroutines** de Kotlin para un manejo eficiente de hilos y evitar bloqueos en la UI.  
+- El empleo de herramientas de IA, como **Cursor, OpenAI y Copilot**, resultó esencial para optimizar la eficiencia del código y automatizar las revisiones de manera dinámica.
 
-9. **Futuras Expansiones**:  
-   - El proyecto está preparado para integrar otras APIs (p. ej. de tráfico, clima, rutas) usando **Retrofit & OkHttp**; esto abre posibilidades para planificar y optimizar rutas, obtener datos externos, etc.  
-   - El soporte a **Clustering de Marcadores** mejoraría la visualización de grandes flotas en el mapa.  
+- El sistema de **CI/CD** basado en GitHub Actions e IA garantizó altos estándares de calidad, al detectar y corregir problemas antes de su despliegue.
 
-En resumen, el desarrollo de **GeoFleet** no solo ha resultado en una aplicación móvil nativa de alta calidad, sino que también ha enriquecido mi experiencia como desarrollador, ampliando mis habilidades y conocimientos en el ecosistema Android.
+4. **Ventajas del Enfoque Nativo**
+
+- Al desarrollarse con **Kotlin y Jetpack —junto al Google Maps SDK—** se aprovecharon las optimizaciones y mejores prácticas del ecosistema oficial de Android.
+
+- La interacción directa con APIs específicas y la personalización de la interfaz bajo los lineamientos de Material Design permiten una experiencia de usuario coherente y moderna.
+
+5. **Arquitectura Limpia y MVVM**
+
+- Este enfoque promueve la separación de responsabilidades y facilita la escalabilidad, permitiendo añadir nuevas funcionalidades (p. ej., notificaciones push o módulos de datos) sin romper la estructura existente.
+
+- El uso de repositorios en la capa de datos permite cambiar de backend (p. ej., sustituyendo Firebase) con un mínimo impacto en la interfaz de usuario.
+
+6. **Estrategia Offline First**
+
+- Con **Room Database**, la aplicación sigue siendo completamente funcional aun con conectividad limitada o inexistente, un factor clave en entornos industriales o logísticos con problemas de cobertura.
+
+7. **Optimización de Rendimiento**
+
+- El uso de Coroutines de Kotlin favorece la gestión asíncrona de tareas y evita bloqueos en la interfaz, brindando una experiencia de usuario más fluida.
+
+8. **Perspectivas de Futuro**
+
+- El proyecto está preparado para integrar nuevas APIs (por ejemplo, de tráfico o clima) mediante **Retrofit y OkHttp**, extendiendo las posibilidades de planificación y análisis.
+
+- La implementación de **Clustering** de marcadores permitiría una visualización más eficiente de grandes flotas sobre el mapa.
+
+En definitiva, el desarrollo de GeoFleet no solo ha dado como resultado una aplicación móvil nativa de alta calidad, sino que también ha permitido consolidar y ampliar mis habilidades como desarrollador dentro del ecosistema Android.
