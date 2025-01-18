@@ -14,8 +14,8 @@ import kotlinx.coroutines.withContext
 private const val TAG = "GeocodingRepository"
 
 class GeocodingRepository(
-    private val context: Context,
-    private val geocodedAddressDao: GeocodedAddressDao
+        private val context: Context,
+        private val geocodedAddressDao: GeocodedAddressDao
 ) {
     private val geocoder by lazy { Geocoder(context, Locale.getDefault()) }
     private val cacheValidityPeriod = TimeUnit.DAYS.toMillis(7) // Cache addresses for 7 days
@@ -49,40 +49,41 @@ class GeocodingRepository(
                     return@withContext "$latitude, $longitude"
                 }
 
-                val addressText = try {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        // Use the new API for Android 13 and above
-                        var result = "$latitude, $longitude"
-                        geocoder.getFromLocation(latitude, longitude, 1) { addresses ->
-                            if (addresses.isNotEmpty()) {
-                                val address = addresses[0]
-                                result = buildString {
-                                    address.thoroughfare?.let { append(it) }
-                                    address.subThoroughfare?.let { append(" ").append(it) }
-                                    address.locality?.let { append(", ").append(it) }
+                val addressText =
+                        try {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                // Use the new API for Android 13 and above
+                                var result = "$latitude, $longitude"
+                                geocoder.getFromLocation(latitude, longitude, 1) { addresses ->
+                                    if (addresses.isNotEmpty()) {
+                                        val address = addresses[0]
+                                        result = buildString {
+                                            address.thoroughfare?.let { append(it) }
+                                            address.subThoroughfare?.let { append(" ").append(it) }
+                                            address.locality?.let { append(", ").append(it) }
+                                        }
+                                    }
+                                }
+                                result
+                            } else {
+                                // Use the old API for Android 12 and below
+                                @Suppress("DEPRECATION")
+                                val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+                                if (addresses != null && addresses.isNotEmpty()) {
+                                    val address = addresses[0]
+                                    buildString {
+                                        address.thoroughfare?.let { append(it) }
+                                        address.subThoroughfare?.let { append(" ").append(it) }
+                                        address.locality?.let { append(", ").append(it) }
+                                    }
+                                } else {
+                                    "$latitude, $longitude"
                                 }
                             }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "❌ Error geocoding address", e)
+                            return@withContext "$latitude, $longitude"
                         }
-                        result
-                    } else {
-                        // Use the old API for Android 12 and below
-                        @Suppress("DEPRECATION")
-                        val addresses = geocoder.getFromLocation(latitude, longitude, 1)
-                        if (addresses != null && addresses.isNotEmpty()) {
-                            val address = addresses[0]
-                            buildString {
-                                address.thoroughfare?.let { append(it) }
-                                address.subThoroughfare?.let { append(" ").append(it) }
-                                address.locality?.let { append(", ").append(it) }
-                            }
-                        } else {
-                            "$latitude, $longitude"
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "❌ Error geocoding address", e)
-                    return@withContext "$latitude, $longitude"
-                }
 
                 // Only cache if we got a proper address (not just coordinates)
                 if (addressText != "$latitude, $longitude") {
@@ -90,7 +91,7 @@ class GeocodingRepository(
                     try {
                         // Cache the result
                         geocodedAddressDao.insert(
-                            GeocodedAddress(coordinates = coordinates, address = addressText)
+                                GeocodedAddress(coordinates = coordinates, address = addressText)
                         )
 
                         // Clean up old cached addresses

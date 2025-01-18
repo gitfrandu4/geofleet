@@ -79,8 +79,6 @@ class MapActivity :
         } catch (e: Exception) {
             Log.e(TAG, "Error reading local.properties", e)
         }
-        val refreshIntervalMillis =
-            properties.getProperty("REFRESH_INTERVAL_MILLIS", "60000").toLong()
 
         // Get selected vehicle ID from intent
         selectedVehicleId = intent.getStringExtra("selected_vehicle_id")
