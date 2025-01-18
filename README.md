@@ -32,9 +32,10 @@
       - [Monitoreo de Vehículos](#monitoreo-de-vehículos)
       - [Interfaz de Usuario](#interfaz-de-usuario)
   - [CI/CD y Automatización (🤖)](#cicd-y-automatización-)
-    - [Revisión Automática de Código](#revisión-automática-de-código)
-    - [Análisis Automático](#análisis-automático)
-    - [Configuración de Secretos](#configuración-de-secretos)
+    - [Integración con GitHub AI](#integración-con-github-ai)
+    - [Flujo de Trabajo de CI](#flujo-de-trabajo-de-ci)
+    - [Comandos de AI en Pull Requests](#comandos-de-ai-en-pull-requests)
+    - [Beneficios de la Integración](#beneficios-de-la-integración)
   - [Información para la Defensa del Trabajo](#información-para-la-defensa-del-trabajo)
 
 ---
@@ -352,24 +353,35 @@ API_TOKEN=your_api_token
 
 ## CI/CD y Automatización (🤖)
 
-El proyecto implementa un sistema completo de CI/CD usando GitHub Actions:
+El proyecto implementa un sistema completo de CI/CD usando GitHub Actions en combinación con GitHub AI para mejorar continuamente la calidad del código:
 
-### Revisión Automática de Código
-- **Comandos en Pull Requests**:
-  - `/review`: Obtiene una revisión técnica detallada
-  - `/summary`: Genera un resumen técnico educativo
+### Integración con GitHub AI
+![GitHub Actions con AI](docs/images/github-actions-ai.png)
 
-### Análisis Automático
-- Ejecución de ktlint
-- Análisis con Android Lint
-- Pruebas unitarias
-- Generación y subida de reportes
+### Flujo de Trabajo de CI
+![Android CI Workflow](docs/images/android_ci_workflow.png)
 
-### Configuración de Secretos
-El proyecto requiere la configuración de los siguientes secretos en GitHub:
-- `OPENAI_API_KEY`: Para revisiones de código AI
-- `MAPS_API_KEY`: Para tests de integración
-- `GOOGLE_SERVICES_JSON`: Archivo de configuración de Firebase (en base64)
+Como se muestra en la imagen, el flujo de trabajo de CI incluye:
+- ✅ **Verificación de Código**: Análisis automático del código mediante ktlint y Android Lint
+- 📊 **Generación de Reportes**: Creación y almacenamiento de informes de análisis
+- 🔄 **Integración Continua**: Verificación automática en cada pull request
+
+El proyecto utiliza una innovadora combinación de GitHub Actions y AI para:
+- **Revisión Automática de Código**: Cada pull request es analizado por AI para detectar posibles mejoras y problemas.
+- **Sugerencias de Optimización**: La AI proporciona recomendaciones específicas para mejorar el código.
+- **Detección de Errores**: Identificación temprana de problemas potenciales antes de que lleguen a producción.
+
+### Comandos de AI en Pull Requests
+Los desarrolladores pueden utilizar comandos especiales en los comentarios:
+- `/review` - Solicita una revisión técnica detallada
+- `/summary` - Genera un resumen técnico del cambio
+- `/suggest` - Obtiene sugerencias de mejora específicas
+
+### Beneficios de la Integración
+- **Mejora Continua**: Cada PR recibe feedback automático para mejorar la calidad del código
+- **Aprendizaje Activo**: Los desarrolladores reciben sugerencias educativas sobre mejores prácticas
+- **Detección Temprana**: Los problemas se identifican y corrigen antes de llegar a la rama principal
+- **Consistencia**: Asegura que todo el código siga los mismos estándares de calidad
 
 ---
 
