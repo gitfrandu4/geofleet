@@ -182,4 +182,8 @@
     <string name="delete_image_confirmation">¿Estás seguro de que quieres borrar esta imagen?</string>
     <string name="delete">Borrar</string>
     <string name="cancel">Cancelar</string>
+
+    <string name="loading_address">Loading address…</string>
+
+    <string name="no_position_available">No position available</string>
 </resources>

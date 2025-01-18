@@ -41,10 +41,13 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textAppearance="?attr/textAppearanceBody2"
+            android:drawableStart="@drawable/ic_location"
+            android:drawablePadding="4dp"
+            android:gravity="center_vertical"
             app:layout_constraintEnd_toEndOf="@id/vehicleId"
             app:layout_constraintStart_toStartOf="@id/vehicleId"
             app:layout_constraintTop_toBottomOf="@id/vehicleId"
-            tools:text="Last position: 28.4697, -16.2548" />
+            tools:text="Calle Principal 123, Ciudad" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/profileButton"
