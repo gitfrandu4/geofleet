@@ -76,6 +76,12 @@ class VehicleAdapter(
                     .delete()
                     .addOnSuccessListener {
                         Log.d(TAG, "✅ Vehicle deleted successfully: ${vehicle.id}")
+                        val currentList = currentList.toMutableList()
+                        val position = currentList.indexOfFirst { it.id == vehicle.id }
+                        if (position != -1) {
+                            currentList.removeAt(position)
+                            submitList(currentList)
+                        }
                         Snackbar.make(
                                         binding.root,
                                         binding.root.context.getString(
