@@ -6,6 +6,7 @@
   - [Índice](#índice)
   - [Descripción General](#descripción-general)
   - [Objetivos del Proyecto](#objetivos-del-proyecto)
+  - [Vistas de la Aplicación](#vistas-de-la-aplicación)
   - [Arquitectura y Patrones de Diseño](#arquitectura-y-patrones-de-diseño)
     - [Arquitectura](#arquitectura)
     - [Patrones y Principios Clave](#patrones-y-principios-clave)
@@ -68,6 +69,26 @@ Su finalidad es brindar una **vista centralizada** de la ubicación de cada veh�
 
 5. **Experiencia de Usuario Óptima**  
    - Implementar **Material Design 3** ofreciendo una interfaz amigable, limpia y adaptable a distintos dispositivos.
+
+---
+
+## Vistas de la Aplicación
+
+Aquí se presentan algunas capturas de pantalla de la aplicación **GeoFleet**, mostrando diferentes funcionalidades y vistas.
+
+| Vista de Mapa | Menú de Navegación |
+|:-------------:|:------------------:|
+| <img src="docs/images/mapa.jpg" alt="Mapa" height="400"> | <img src="docs/images/menu.jpg" alt="Menú" height="400"> |
+
+| Vista de Perfil | Lista de Vehículos |
+|:---------------:|:------------------:|
+| <img src="docs/images/perfil.jpg" alt="Perfil" height="400"> | <img src="docs/images/lista_vehiculos.jpg" alt="Lista de Vehículos" height="400"> |
+
+| Detalle de Vehículo |
+|:-------------------:|
+| <img src="docs/images/detalle_vehiculo.jpg" alt="Detalle de Vehículo" height="400"> |
+
+Estas capturas ilustran la interfaz de usuario y las funcionalidades clave de la aplicación, como la visualización de mapas,
 
 ---
 
