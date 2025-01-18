@@ -176,4 +176,5 @@
 
     <string name="vehicle_id_format">ID: %s</string>
     <string name="change_profile_image">Cambiar imagen de perfil</string>
+    <string name="save">Guardar</string>
 </resources>

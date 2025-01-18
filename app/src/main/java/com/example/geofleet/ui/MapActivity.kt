@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.geofleet.BuildConfig
 import com.example.geofleet.LoginActivity
 import com.example.geofleet.MainActivity
 import com.example.geofleet.R
@@ -32,17 +33,26 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.File
+import java.io.FileInputStream
 import java.util.Properties
 
 class MapActivity :
     AppCompatActivity(), OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
+    companion object {
+        private const val TAG = "MapActivity"
+    }
+
     private lateinit var binding: ActivityMapBinding
     private lateinit var map: GoogleMap
     private lateinit var database: AppDatabase
@@ -51,11 +61,26 @@ class MapActivity :
     private var customMarkerBitmap: BitmapDescriptor? = null
     private var selectedVehicleId: String? = null
     private var selectedVehicleMarkerBitmap: BitmapDescriptor? = null
+    private var refreshJob: Job? = null
+    private var isInitialLoad = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMapBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Get refresh interval from local.properties
+        val properties = Properties()
+        try {
+            val localPropertiesFile = File(applicationContext.cacheDir.parent, "local.properties")
+            if (localPropertiesFile.exists()) {
+                FileInputStream(localPropertiesFile).use { properties.load(it) }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error reading local.properties", e)
+        }
+        val refreshIntervalMillis =
+            properties.getProperty("REFRESH_INTERVAL_MILLIS", "60000").toLong()
 
         // Get selected vehicle ID from intent
         selectedVehicleId = intent.getStringExtra("selected_vehicle_id")
@@ -101,6 +126,9 @@ class MapActivity :
         mapFragment.getMapAsync(this)
 
         setupFab()
+
+        // Start periodic refresh
+        startPeriodicRefresh()
     }
 
     private fun createMarkerBitmaps() {
@@ -239,14 +267,15 @@ class MapActivity :
                 }
             }
 
-            // Only adjust bounds if no vehicle is selected
-            if (selectedVehicleId == null && positions.isNotEmpty()) {
+            // Only adjust bounds if no vehicle is selected AND this is the initial load
+            if (selectedVehicleId == null && positions.isNotEmpty() && isInitialLoad) {
                 val builder = LatLngBounds.Builder()
                 positions.forEach { position ->
                     builder.include(LatLng(position.latitude, position.longitude))
                 }
                 val bounds = builder.build()
                 map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+                isInitialLoad = false
             }
         } catch (e: Exception) {
             Log.e("MapActivity", "Error updating map", e)
@@ -349,5 +378,25 @@ class MapActivity :
                 .build()
 
         vehicleService = retrofit.create(VehicleService::class.java)
+    }
+
+    private fun startPeriodicRefresh() {
+        refreshJob?.cancel()
+        refreshJob =
+            lifecycleScope.launch {
+                while (isActive) {
+                    try {
+                        refreshVehiclePositions()
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error refreshing vehicle positions", e)
+                    }
+                    delay(BuildConfig.REFRESH_INTERVAL_MILLIS)
+                }
+            }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        refreshJob?.cancel()
     }
 }
