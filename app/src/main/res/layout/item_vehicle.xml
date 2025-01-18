@@ -71,6 +71,20 @@
             app:layout_constraintStart_toEndOf="@id/profileButton"
             app:layout_constraintTop_toTopOf="@id/profileButton" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/deleteButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/delete"
+            app:icon="@drawable/ic_delete"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:backgroundTint="@color/error_container"
+            android:textColor="@color/error"
+            app:iconTint="@color/error"
+            app:layout_constraintStart_toEndOf="@id/mapButton"
+            app:layout_constraintTop_toTopOf="@id/mapButton" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </com.google.android.material.card.MaterialCardView> 

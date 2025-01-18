@@ -44,4 +44,5 @@
     <!-- Material 3 colors -->
     <color name="error">#BA1A1A</color>
     <color name="on_error_container">#FFFFFF</color>
+    <color name="error_container">#FFDAD6</color>
 </resources>
