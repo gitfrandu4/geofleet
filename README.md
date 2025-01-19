@@ -1,5 +1,7 @@
 # GeoFleet - Sistema de Monitoreo de Flotas
 
+Asignatura: **Programación de Aplicaciones Móviles Nativas**
+
 ![Kotlin](https://img.shields.io/badge/Kotlin-1.8.0-purple?logo=kotlin)
 ![Android](https://img.shields.io/badge/Android-SDK%2033-green?logo=android)
 ![Firebase](https://img.shields.io/badge/Firebase-BOM%2033.7.0-orange?logo=firebase)
@@ -10,6 +12,10 @@
 ![OkHttp](https://img.shields.io/badge/OkHttp-4.10.0-lightgreen?logo=square)
 ![Glide](https://img.shields.io/badge/Glide-4.16.0-blue?logo=android)
 ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-2088FF?logo=github-actions)
+
+<div class="page"/>
+
+---
 
 ## Índice
 
@@ -53,6 +59,9 @@
     - [Comandos de AI en Pull Requests](#comandos-de-ai-en-pull-requests)
     - [Beneficios de la Integración](#beneficios-de-la-integración)
   - [Conclusiones](#conclusiones)
+  - [Referencias](#referencias)
+
+<div class="page"/>
 
 ---
 
@@ -68,6 +77,8 @@ Su finalidad es brindar una **vista centralizada** de la ubicación de cada veh�
 <p align="center">
   <img src="docs/images/logo.png" alt="Logo" height="100">
 </p>
+
+<div class="page"/>
 
 ---
 
@@ -87,6 +98,8 @@ Su finalidad es brindar una **vista centralizada** de la ubicación de cada veh�
 
 5. **Experiencia de Usuario Óptima**  
    - Implementar **Material Design 3** ofreciendo una interfaz amigable, limpia y adaptable a distintos dispositivos.
+
+<div class="page"/>
 
 ---
 
@@ -155,6 +168,8 @@ Estas capturas ilustran la interfaz de usuario y las funcionalidades clave de la
 
 Nota: La información de posición no está disponible en la captura de la lista de vehículos de manera intencional.
 
+<div class="page"/>
+
 ---
 
 ## Arquitectura
@@ -199,6 +214,9 @@ La arquitectura de **GeoFleet** está diseñada para maximizar la eficiencia y e
 
 Esta arquitectura permite que **GeoFleet** sea una aplicación robusta, flexible y fácil de mantener, preparada para futuras expansiones y mejoras.
 
+<div class="page"/>
+
+---
 
 ## Funcionalidades
 
@@ -239,6 +257,8 @@ Esta arquitectura permite que **GeoFleet** sea una aplicación robusta, flexible
 
 Estas funcionalidades futuras están planificadas para mejorar la experiencia del usuario y ofrecer un conjunto más completo de herramientas para la gestión de flotas.
 
+<div class="page"/>
+
 ---
 
 ## Tecnologías Utilizadas
@@ -273,6 +293,8 @@ En el desarrollo de **GeoFleet**, se han empleado las siguientes herramientas y 
 - **Glide**  
   Librería para la carga y gestión eficiente de imágenes. Permite transformaciones sencillas —como recortes circulares— y almacenamiento en caché.
 
+<div class="page"/>
+
 ---
 
 ## Estructura del Proyecto
@@ -304,6 +326,8 @@ GeoFleet/
 
 4.	**`utils/`**: Agrupa utilidades y extensiones usadas en toda la aplicación (métodos de formateo, funciones de extensión, etc.).
 
+<div class="page"/>
+
 ---
 
 ## Requisitos Previos
@@ -318,6 +342,8 @@ Antes de compilar y ejecutar el proyecto, se deben cumplir los siguientes requis
 - **Servicios**  
   - [Cuenta Firebase](https://console.firebase.google.com/) con Authentication, Firestore y Storage activos.
   - API Key de Google Maps obtenida desde [Google Cloud Console](https://console.cloud.google.com/).
+
+<div class="page"/>
 
 ---
 
@@ -380,6 +406,8 @@ dependencies {
 }
 ```
 
+<div class="page"/>
+
 ---
 
 ## Base de Datos Local y Sincronización
@@ -411,6 +439,8 @@ data class VehiclePositionEntity(
 - Los datos actualizados se almacenan tanto en Room como en Firestore, y la interfaz de usuario se refresca mediante LiveData.
 
 Esta implementación "offline first" garantiza la operatividad de la aplicación aun sin conexión a internet, volcando luego los datos a la nube cuando la conectividad se restablezca.
+
+<div class="page"/>
 
 ---
 
@@ -445,6 +475,8 @@ Esta implementación "offline first" garantiza la operatividad de la aplicación
       .into(this)
   ```
 
+<div class="page"/>
+
 ---
 
 ## Instrucciones para Ejecutar
@@ -458,6 +490,8 @@ Siga estos pasos para desplegar la aplicación en un emulador o dispositivo fís
 2. **Abre el proyecto en Android Studio**.
 3. **Configura** `google-services.json` y **MAPS_API_KEY** en `local.properties`.
 4. **Compila y ejecuta** en emulador o dispositivo.
+
+<div class="page"/>
 
 ---
 
@@ -493,8 +527,9 @@ API_TOKEN=your_api_token
 - Alertas (Snackbars, Toasts) y reintentos en caso de errores.  
 - Diseño moderno con **Material Design 3**.
 
----
+<div class="page"/>
 
+---
 
 ## CI/CD y Automatización
 
@@ -539,6 +574,8 @@ Los desarrolladores pueden utilizar comandos especiales en los comentarios:
 - **Detección Temprana**: Los problemas se identifican y corrigen antes de llegar a la rama principal
 - **Consistencia**: Asegura que todo el código siga los mismos estándares de calidad
 
+<div class="page"/>
+
 ---
 
 ## Conclusiones
@@ -570,3 +607,43 @@ El desarrollo de **GeoFleet** ha supuesto un hito formativo al transitar desde e
    El proyecto cuenta con una arquitectura apta para la incorporación de nuevas APIs (por ejemplo, servicios de clima o tráfico) y la implementación de mejoras visuales —como la **clusterización de marcadores**— para la gestión de grandes volúmenes de información.
 
 En definitiva, **GeoFleet** se consolida como una solución robusta y escalable que ha servido de plataforma de aprendizaje para explorar el desarrollo nativo, la integración de servicios de terceros y el uso de IA en el ciclo de vida del proyecto. El camino recorrido sienta las bases para seguir evolucionando la aplicación y explotando nuevos horizontes funcionales en la gestión de flotas.
+
+<div class="page"/>
+
+---
+
+## Referencias
+
+**Android y Kotlin**
+- [Android Developers](https://developer.android.com/) - Portal oficial para desarrolladores Android
+- [Kotlin Documentation](https://kotlinlang.org/docs/home.html) - Documentación oficial de Kotlin
+- [Android Studio](https://developer.android.com/studio) - IDE oficial para desarrollo Android
+- [Jetpack Components](https://developer.android.com/jetpack) - Bibliotecas, herramientas y guías
+
+**Firebase**
+- [Firebase Documentation](https://firebase.google.com/docs) - Documentación general de Firebase
+- [Cloud Firestore](https://firebase.google.com/docs/firestore) - Base de datos en tiempo real
+- [Firebase Authentication](https://firebase.google.com/docs/auth) - Sistema de autenticación
+- [Firebase Storage](https://firebase.google.com/docs/storage) - Almacenamiento de archivos
+
+**Google Maps**
+- [Maps SDK for Android](https://developers.google.com/maps/documentation/android-sdk) - SDK de Google Maps
+- [Google Cloud Console](https://console.cloud.google.com/) - Gestión de APIs y servicios
+
+**Material Design** 
+- [Material Design 3](https://m3.material.io/) - Guía oficial de Material Design 3
+
+**Bibliotecas**
+
+- [Room Persistence Library](https://developer.android.com/training/data-storage/room) - Base de datos local
+- [Retrofit](https://square.github.io/retrofit/) - Cliente HTTP para Android
+- [OkHttp](https://square.github.io/okhttp/) - Cliente HTTP
+- [Glide](https://github.com/bumptech/glide) - Carga y caché de imágenes
+- [Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) - Programación asíncrona en Kotlin
+
+
+**Control de Versiones y CI/CD**
+
+- [GitHub Actions](https://docs.github.com/es/actions) - Automatización de flujos de trabajo
+- [GitHub AI](https://docs.github.com/es/copilot) - Asistente de IA para desarrollo
+- [Firebase App Distribution](https://firebase.google.com/docs/app-distribution) - Distribución de apps
