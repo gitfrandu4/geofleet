@@ -4,14 +4,11 @@
 
 - [GeoFleet - Sistema de Monitoreo de Flotas](#geofleet---sistema-de-monitoreo-de-flotas)
   - [Índice](#índice)
-  - [Descripción General](#descripción-general)
-  - [Objetivos del Proyecto](#objetivos-del-proyecto)
+  - [Introducción](#introducción)
+  - [Objetivos](#objetivos)
   - [Vistas de la Aplicación](#vistas-de-la-aplicación)
-  - [Arquitectura y Patrones de Diseño](#arquitectura-y-patrones-de-diseño)
-    - [Arquitectura](#arquitectura)
-    - [Patrones y Principios Clave](#patrones-y-principios-clave)
-    - [Manejo de Imágenes de Perfil](#manejo-de-imágenes-de-perfil)
-  - [Funcionalidades Clave](#funcionalidades-clave)
+  - [Arquitectura](#arquitectura)
+  - [Funcionalidades](#funcionalidades)
   - [Tecnologías Utilizadas](#tecnologías-utilizadas)
   - [Estructura del Proyecto](#estructura-del-proyecto)
   - [Requisitos Previos](#requisitos-previos)
@@ -25,7 +22,6 @@
   - [Detalles Técnicos Destacados](#detalles-técnicos-destacados)
     - [Integración de Mapas](#integración-de-mapas)
     - [Gestión de Perfiles](#gestión-de-perfiles)
-  - [Funcionalidades Futuras](#funcionalidades-futuras)
   - [Instrucciones para Ejecutar](#instrucciones-para-ejecutar)
   - [Configuración](#configuración)
     - [Archivo config.properties](#archivo-configproperties)
@@ -42,7 +38,7 @@
 
 ---
 
-## Descripción General
+## Introducción
 
 **GeoFleet** es una aplicación **Android nativa** desarrollada en **Kotlin** que permite **monitorear y gestionar flotas de vehículos** en tiempo real. Combina:
 - **Firebase** (Authentication, Firestore, Storage)
@@ -53,7 +49,7 @@ Su finalidad es brindar una **vista centralizada** de la ubicación de cada veh�
 
 ---
 
-## Objetivos del Proyecto
+## Objetivos
 
 1. **Monitoreo en Tiempo Real**  
    - Actualizar la posición de la flota automáticamente con **Google Maps** y **Firestore**.
@@ -94,30 +90,13 @@ Nota: La información de posición no está disponible en la captura de la lista
 
 ---
 
-## Arquitectura y Patrones de Diseño
-
-El proyecto se ha diseñado siguiendo **MVVM** y elementos de **Clean Architecture**:
-
-- **Model (Dominio & Datos)**  
-  Representa la capa de datos (POJOs, repositorios, uso de Room, etc.).
-
-- **View (UI)**  
-  Actividades y Fragments que interactúan directamente con el usuario y muestran la información.
-
-- **ViewModel (Lógica de Presentación)**  
-  Gestiona la comunicación entre la capa de datos y la vista, manejando estados y eventos.
-
-- **Repositories**  
-  Se encargan de orquestar la obtención y el envío de datos a fuentes como **Room**, **APIs** y **Firebase**.
-
-
-### Arquitectura
+## Arquitectura
 
 ![Arquitectura de GeoFleet](docs/images/arquitectura-geofleet.png)
 
 La arquitectura de **GeoFleet** está diseñada para maximizar la eficiencia y escalabilidad, utilizando un enfoque modular basado en el patrón **MVVM** (Model-View-ViewModel). La aplicación se compone de las siguientes capas:
 
-1. **Capa de Interfaz de Usuario**: 
+1. **Capa de Interfaz de Usuario (UI)**: 
    - Incluye actividades y fragmentos que interactúan directamente con el usuario.
    - Utiliza **Binding** y **Observables** para mantener la UI sincronizada con los datos.
 
@@ -135,24 +114,7 @@ La arquitectura de **GeoFleet** está diseñada para maximizar la eficiencia y e
 5. **Integración Continua y Despliegue**:
    - Utiliza GitHub Actions para automatizar la integración y despliegue continuo, asegurando que el código se mantenga en alta calidad.
 
-### Patrones y Principios Clave
-
-- **Repository Pattern**: Abstrae la fuente de datos real ante la UI.  
-- **Observer Pattern**: Uso de **LiveData** y **Flow** para actualizar la UI al cambiar datos.  
-- **Dependency Injection** (opcional): Factible con **Hilt** o **Koin**.  
-- **SOLID**: Se promueve responsabilidad única y separación de intereses.
-
-### Manejo de Imágenes de Perfil
-El proyecto implementa un sistema robusto para el manejo de imágenes de perfil usando un componente personalizado `ProfileImageView` que:
-- Gestiona automáticamente la carga de imágenes desde Firebase Storage
-- Proporciona visualización circular de imágenes
-- Maneja actualizaciones en tiempo real
-- Implementa fallbacks y placeholders
-- Mantiene consistencia en toda la aplicación
-
----
-
-## Funcionalidades Clave
+## Funcionalidades
 
 - **🗺️ Mapa en Tiempo Real**  
   Muestra en Google Maps la posición de los vehículos.
@@ -208,8 +170,6 @@ GeoFleet/
 ├── docs/                          # Documentación técnica y archivos de soporte
 └── proguard-rules.pro             # Configuración de optimización y minificación
 ```
-
----
 
 ---
 
@@ -343,14 +303,6 @@ data class VehiclePositionEntity(
       .error(R.drawable.ic_person_error)
       .into(this)
   ```
-
----
-
-## Funcionalidades Futuras
-
-1. **Clustering** de marcadores.  
-2. **Filtros avanzados** (estado, ubicación).  
-3. **Estados de vehículo** con distintos colores de marcadores.
 
 ---
 
