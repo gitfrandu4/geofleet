@@ -17,7 +17,10 @@
   - [Índice](#índice)
   - [Introducción](#introducción)
   - [Objetivos](#objetivos)
-  - [Vistas de la Aplicación](#vistas-de-la-aplicación)
+  - [Diseño](#diseño)
+    - [Paleta de Colores](#paleta-de-colores)
+    - [Componentes Material Design 3](#componentes-material-design-3)
+    - [Vistas de la Aplicación](#vistas-de-la-aplicación)
   - [Arquitectura](#arquitectura)
     - [Patrones de Diseño](#patrones-de-diseño)
   - [Funcionalidades](#funcionalidades)
@@ -43,13 +46,6 @@
     - [Funcionalidades Principales](#funcionalidades-principales)
       - [Monitoreo de Vehículos](#monitoreo-de-vehículos)
       - [Interfaz de Usuario](#interfaz-de-usuario)
-  - [Diseño Visual y Material Design 3](#diseño-visual-y-material-design-3)
-    - [Paleta de Colores](#paleta-de-colores)
-    - [Componentes Material Design 3](#componentes-material-design-3)
-      - [1. Navigation \& Structure](#1-navigation--structure)
-      - [2. Actions \& Inputs](#2-actions--inputs)
-      - [3. Communication](#3-communication)
-      - [4. Containment](#4-containment)
   - [CI/CD y Automatización](#cicd-y-automatización)
     - [Pull Requests y Code Review](#pull-requests-y-code-review)
     - [Integración con GitHub AI](#integración-con-github-ai)
@@ -94,7 +90,48 @@ Su finalidad es brindar una **vista centralizada** de la ubicación de cada veh�
 
 ---
 
-## Vistas de la Aplicación
+## Diseño
+
+### Paleta de Colores
+
+<img src="docs/images/color_palette.png" alt="Paleta de Colores" width="500">
+
+La aplicación utiliza una paleta de colores que sigue los principios de Material Design 3:
+
+**Colores Primarios**
+
+- **Primary**: `#F2632A` - Color principal de la aplicación
+- **On Primary**: `#FFFFFF` - Color para textos sobre el color primario
+- **Primary Container**: `#FFDBCA` - Contenedores y elementos destacados
+- **On Primary Container**: `#A94A1D` - Textos sobre contenedores primarios
+
+### Componentes Material Design 3
+
+![Componentes Material Design 3](docs/images/material_design_3_components.png)
+
+La aplicación implementa los siguientes componentes de Material Design 3:
+
+**1. Navigation & Structure**
+
+- **`NavigationDrawer`**: Menú lateral con opciones principales
+- **`TopAppBar`**: Barra superior con título y acciones
+
+**2. Actions & Inputs**
+
+- **`FloatingActionButton`**: Para acciones principales como añadir vehículos
+- **`IconButton`**: Para acciones secundarias
+- **`TextField`**: Campos de entrada con validación y estados
+
+**3. Communication**
+
+- **`Snackbar`**: Mensajes cortos y acciones
+- **`Dialog`**: Para confirmaciones y acciones importantes
+- **`ProgressIndicator`**: Indicadores de carga lineales y circulares
+- **`Card`**: Para mostrar información de vehículos y perfiles
+
+---
+
+### Vistas de la Aplicación
 
 Aquí se presentan algunas capturas de pantalla de la aplicación **GeoFleet**, mostrando diferentes funcionalidades y vistas.
 
@@ -458,50 +495,6 @@ API_TOKEN=your_api_token
 
 ---
 
-
-## Diseño Visual y Material Design 3
-
-### Paleta de Colores
-
-<img src="docs/images/color_palette.png" alt="Paleta de Colores" width="500">
-
-La aplicación utiliza una paleta de colores que sigue los principios de Material Design 3:
-
-- **Colores Primarios**:
-  - **Primary**: `#F2632A` - Color principal de la aplicación
-  - **On Primary**: `#FFFFFF` - Color para textos sobre el color primario
-  - **Primary Container**: `#FFDBCA` - Contenedores y elementos destacados
-  - **On Primary Container**: `#A94A1D` - Textos sobre contenedores primarios
-
-### Componentes Material Design 3
-
-La aplicación implementa los siguientes componentes de Material Design 3:
-
-![Componentes Material Design 3](docs/images/material_design_3_components.png)
-
-#### 1. Navigation & Structure
-- **`NavigationDrawer`**: Menú lateral con opciones principales
-- **`TopAppBar`**: Barra superior con título y acciones
-
-#### 2. Actions & Inputs
-
-- **`FloatingActionButton`**: Para acciones principales como añadir vehículos
-- **`IconButton`**: Para acciones secundarias
-- **`TextField`**: Campos de entrada con validación y estados
-
-#### 3. Communication
-- **`Snackbar`**: Mensajes cortos y acciones
-- **`Dialog`**: Para confirmaciones y acciones importantes
-- **`ProgressIndicator`**: Indicadores de carga lineales y circulares
-- **`Card`**: Para mostrar información de vehículos y perfiles
-
-#### 4. Containment
-- **`BottomSheet`**: Para mostrar detalles adicionales
-- **`Chip`**: Para filtros y etiquetas de estado
-- **`List`**: Para mostrar listados de vehículos
-- **`Menu`**: Menús desplegables para acciones contextuales
-
----
 
 ## CI/CD y Automatización
 
