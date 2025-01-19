@@ -1,5 +1,16 @@
 # GeoFleet - Sistema de Monitoreo de Flotas
 
+![Kotlin](https://img.shields.io/badge/Kotlin-1.8.0-purple?logo=kotlin)
+![Android](https://img.shields.io/badge/Android-SDK%2033-green?logo=android)
+![Firebase](https://img.shields.io/badge/Firebase-BOM%2033.7.0-orange?logo=firebase)
+![Google Maps](https://img.shields.io/badge/Google%20Maps-v18.2.0-blue?logo=google-maps)
+![Room](https://img.shields.io/badge/Room-2.6.1-lightgrey?logo=sqlite)
+![Material Design](https://img.shields.io/badge/Material%20Design-3-blue?logo=material-design)
+![Retrofit](https://img.shields.io/badge/Retrofit-2.9.0-orange?logo=square)
+![OkHttp](https://img.shields.io/badge/OkHttp-4.10.0-lightgreen?logo=square)
+![Glide](https://img.shields.io/badge/Glide-4.16.0-blue?logo=android)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-2088FF?logo=github-actions)
+
 ## Índice
 
 - [GeoFleet - Sistema de Monitoreo de Flotas](#geofleet---sistema-de-monitoreo-de-flotas)
@@ -342,7 +353,7 @@ data class VehiclePositionEntity(
 - La aplicación detecta nuevas posiciones, cancelando cualquier trabajo en curso para evitar duplicidades.
 - Los datos actualizados se almacenan tanto en Room como en Firestore, y la interfaz de usuario se refresca mediante LiveData.
 
-Esta implementación “offline first” garantiza la operatividad de la aplicación aun sin conexión a internet, volcando luego los datos a la nube cuando la conectividad se restablezca.
+Esta implementación "offline first" garantiza la operatividad de la aplicación aun sin conexión a internet, volcando luego los datos a la nube cuando la conectividad se restablezca.
 
 ---
 
