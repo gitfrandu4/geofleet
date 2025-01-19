@@ -32,7 +32,7 @@
     - [Funcionalidades Principales](#funcionalidades-principales)
       - [Monitoreo de Vehículos](#monitoreo-de-vehículos)
       - [Interfaz de Usuario](#interfaz-de-usuario)
-  - [CI/CD y Automatización (🤖)](#cicd-y-automatización-)
+  - [CI/CD y Automatización](#cicd-y-automatización)
     - [Integración con GitHub AI](#integración-con-github-ai)
     - [Flujo de Trabajo de CI](#flujo-de-trabajo-de-ci)
     - [Comandos de AI en Pull Requests](#comandos-de-ai-en-pull-requests)
@@ -179,18 +179,41 @@ Estas funcionalidades futuras están planificadas para mejorar la experiencia de
 
 ## Tecnologías Utilizadas
 
+En el desarrollo de **GeoFleet**, se han empleado las siguientes herramientas y frameworks:
+
 - **Kotlin**  
-- **Firebase** (Authentication, Firestore, Storage)  
+  Lenguaje oficial para el desarrollo de aplicaciones Android, que destaca por su seguridad (programación null-safe) y su concisión.
+
+- **Firebase (Authentication, Firestore, Storage)**  
+  Plataforma de Google que provee autenticación de usuarios, base de datos en tiempo real y almacenamiento de archivos. Permite la sincronización automática de datos y simplifica la gestión de usuarios.
+
 - **Google Maps SDK**  
-- **Jetpack Components** (Room, Navigation, ViewModel, LiveData, ViewBinding)  
+  Biblioteca nativa de Google para la integración de mapas interactivos, soporte de marcadores personalizados y localización.  
+
+- **Jetpack Components**  
+  Conjunto de librerías de Android que incluye:
+  - **Room**: Persistencia local de datos y consultas reactivas.  
+  - **Navigation**: Manejo de la navegación entre pantallas.  
+  - **ViewModel, LiveData**: Separación de lógica de negocio y supervisión de cambios.  
+  - **ViewBinding**: Conexión segura entre vistas y código, evitando errores de tipo.
+
 - **Coroutines & Flow**  
+  Librerías de Kotlin que facilitan la programación asíncrona y el manejo reactivo de datos, respetando el principio de no bloquear la interfaz de usuario.
+
 - **Material Design 3**  
-- **Retrofit & OkHttp** (para posibles integraciones con APIs externas)  
-- **Glide** (carga de imágenes)
+  Lineamientos de diseño de Google que garantizan consistencia visual, adaptabilidad en múltiples dispositivos y uso de componentes accesibles.
+
+- **Retrofit & OkHttp** 
+  Permiten, en caso de necesitarlo, la comunicación con APIs externas mediante peticiones HTTP, brindando un manejo sencillo de respuestas en formato JSON o XML.
+
+- **Glide**  
+  Librería para la carga y gestión eficiente de imágenes. Permite transformaciones sencillas —como recortes circulares— y almacenamiento en caché.
 
 ---
 
 ## Estructura del Proyecto
+
+La estructura de directorios de **GeoFleet** refleja la separación lógica de capas y funcionalidades, favoreciendo la escalabilidad y el mantenimiento:
 
 ```
 GeoFleet/
@@ -209,9 +232,19 @@ GeoFleet/
 └── proguard-rules.pro             # Configuración de optimización y minificación
 ```
 
+1.	**`data/`**: Contiene los modelos de datos, las interfaces DAO de Room y los repositorios que conectan las fuentes de datos locales y remotas.
+
+2.	**`ui/`**: Incluye las Activities y Fragments que representan la capa de presentación. Se integran con ViewModels para manejar la lógica de la aplicación.
+
+3.	**`service/`**: Alberga clases y funciones que interactúan con servicios externos (p. ej. Firebase), gestionando la autenticación y la sincronización en tiempo real.
+
+4.	**`utils/`**: Agrupa utilidades y extensiones usadas en toda la aplicación (métodos de formateo, funciones de extensión, etc.).
+
 ---
 
 ## Requisitos Previos
+
+Antes de compilar y ejecutar el proyecto, se deben cumplir los siguientes requisitos:
 
 - **Software**  
   - Android Studio (Arctic Fox o superior)  
@@ -219,12 +252,14 @@ GeoFleet/
   - Google Play Services  
 
 - **Servicios**  
-  - Cuenta Firebase (Authentication, Firestore y Storage activos)  
-  - API Key de Google Maps  
+  - [Cuenta Firebase](https://console.firebase.google.com/) con Authentication, Firestore y Storage activos.
+  - API Key de Google Maps obtenida desde [Google Cloud Console](https://console.cloud.google.com/).
 
 ---
 
 ## Configuración Técnica
+
+La aplicación requiere ajustar algunos archivos clave y habilitar servicios externos:
 
 ### 1. Firebase
 
@@ -245,9 +280,9 @@ GeoFleet/
 
 ### 3. Gradle
 
-Asegúrate de incluir las siguientes dependencias en `build.gradle`:
+En el archivo `build.gradle` (a nivel de módulo), verifica que estén declarados los plugins y dependencias requeridos:
 
-```
+```groovy
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
@@ -255,6 +290,7 @@ plugins {
 }
 
 android {
+    // Configuración específica del proyecto
     // ...
 }
 
@@ -284,7 +320,7 @@ dependencies {
 
 ## Base de Datos Local y Sincronización
 
-El proyecto implementa una robusta estrategia de sincronización:
+Para asegurar la disponibilidad de datos incluso en condiciones de conectividad inestable, **GeoFleet** implementa una estrategia de sincronización basada en **Room** (offline) y **Firestore** (online).
 
 ### Estructura de Datos
 ```kotlin
@@ -298,19 +334,19 @@ data class VehiclePositionEntity(
 ```
 
 ### Flujo de Datos
-1. **Carga Inicial**:
-   - Carga de IDs desde configuración
-   - Obtención de posiciones desde API
-   - Almacenamiento en Room
-   - Actualización en Firestore
-   - Actualización de UI
 
-2. **Actualizaciones**:
-   - Cancelación de trabajos en curso
-   - Obtención de nuevas posiciones
-   - Actualización de almacenamiento local y en la nube
-   - Actualización de UI
-   - Actualización de contadores
+1. **Carga Inicial**
+
+- Se obtienen los IDs de los vehículos desde la configuración.
+- Se solicitan las posiciones iniciales a través de la API y se guardan en Room.
+- Los cambios se reflejan en Firestore para mantener sincronizados a todos los clientes y permitir acceso remoto.
+
+2. **Actualizaciones**
+
+- La aplicación detecta nuevas posiciones, cancelando cualquier trabajo en curso para evitar duplicidades.
+- Los datos actualizados se almacenan tanto en Room como en Firestore, y la interfaz de usuario se refresca mediante LiveData.
+
+Esta implementación “offline first” garantiza la operatividad de la aplicación aun sin conexión a internet, volcando luego los datos a la nube cuando la conectividad se restablezca.
 
 ---
 
@@ -318,9 +354,11 @@ data class VehiclePositionEntity(
 
 ### Integración de Mapas
 
-- Uso de **Google Maps SDK**.  
-- Marcadores personalizados usando layouts e **Inflate**:
-  ```
+- Uso del **Google Maps SDK** para renderizar y actualizar mapas de forma dinámica.
+- **Marcadores Personalizados**: Se emplean layouts inflados en tiempo de ejecución para crear íconos con información adicional (p. ej. estado del vehículo).
+- **Actualizaciones en Tiempo Real**: Se implementa un ciclo de actualización periódica con corrutinas para mantener la información actualizada.
+
+  ```kotlin
   fun createCustomMarker(): BitmapDescriptor {
       val view = LayoutInflater.from(context).inflate(R.layout.marker_layout, null)
       val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
@@ -331,9 +369,10 @@ data class VehiclePositionEntity(
 
 ### Gestión de Perfiles
 
-- Subida y carga de imágenes con **Firebase Storage**.  
-- Ejemplo de carga con **Glide**:
-  ```
+- **Uso de Firebase Storage**: Permite asociar fotos personalizadas a cada usuario o vehículo.
+- **Glide**: Facilita la carga y transformación de imágenes (p. ej. para recortar avatares en forma circular):
+
+  ```kotlin
   Glide.with(this)
       .load(photoUrl)
       .circleCrop()
@@ -345,6 +384,8 @@ data class VehiclePositionEntity(
 ---
 
 ## Instrucciones para Ejecutar
+
+Siga estos pasos para desplegar la aplicación en un emulador o dispositivo físico:
 
 1. **Clona el repositorio**:
    ```
@@ -365,7 +406,7 @@ data class VehiclePositionEntity(
 BASE_URL=https://api.example.com/
 
 # IDs de vehículos a monitorear
-vehicle.ids=1528,1793
+vehicle.ids=0001,0002,0003,0004,0005,0006,0007,0008,0009,0010
 
 # Token de autenticación para la API
 API_TOKEN=your_api_token
@@ -390,7 +431,7 @@ API_TOKEN=your_api_token
 
 ---
 
-## CI/CD y Automatización (🤖)
+## CI/CD y Automatización
 
 El proyecto implementa un sistema completo de CI/CD usando GitHub Actions en combinación con GitHub AI para mejorar continuamente la calidad del código:
 
