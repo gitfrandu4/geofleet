@@ -75,17 +75,13 @@ Su finalidad es brindar una **vista centralizada** de la ubicación de cada veh�
 
 Aquí se presentan algunas capturas de pantalla de la aplicación **GeoFleet**, mostrando diferentes funcionalidades y vistas.
 
-| Vista de Mapa | Menú de Navegación |
-|:-------------:|:------------------:|
-| <img src="docs/images/mapa.jpg" alt="Mapa" height="400"> | <img src="docs/images/menu.jpg" alt="Menú" height="400"> |
+| Vista de Mapa | Menú de Navegación | Detalle de Vehículo |
+|:-------------:|:------------------:|:-------------------:|
+| <img src="docs/images/mapa.jpg" alt="Mapa" height="400"> | <img src="docs/images/menu.jpg" alt="Menú" height="400"> | <img src="docs/images/detalle_vehiculo.jpg" alt="Detalle de Vehículo" height="400"> |
 
-| Vista de Perfil | Lista de Vehículos |
-|:---------------:|:------------------:|
-| <img src="docs/images/perfil.jpg" alt="Perfil" height="400"> | <img src="docs/images/lista_vehiculos.jpg" alt="Lista de Vehículos" height="400"> |
-
-| Detalle de Vehículo |
-|:-------------------:|
-| <img src="docs/images/detalle_vehiculo.jpg" alt="Detalle de Vehículo" height="400"> |
+| Vista de Perfil | Lista de Vehículos | Perfil de Vehículo |
+|:---------------:|:------------------:|:-------------------:|
+| <img src="docs/images/perfil.jpg" alt="Perfil" height="400"> | <img src="docs/images/lista_vehiculos.jpg" alt="Lista de Vehículos" height="400"> | <img src="docs/images/perfil_vehiculo.jpg" alt="Perfil de Vehículo" height="400"> |
 
 Estas capturas ilustran la interfaz de usuario y las funcionalidades clave de la aplicación, como la visualización de mapas.
 
