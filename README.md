@@ -148,19 +148,20 @@ La aplicación implementa los siguientes componentes de Material Design 3:
 
 Aquí se presentan algunas capturas de pantalla de la aplicación **GeoFleet**, mostrando diferentes funcionalidades y vistas.
 
-| Iniciar Sesión | Registrarse | Vista de Mapa |
-|:-------------:|:------------------:|:-------------------:|
-| <img src="docs/images/iniciar_sesion.png" alt="Iniciar Sesión" height="400"> | <img src="docs/images/registrarse.png" alt="Registrarse" height="400"> | <img src="docs/images/map.png" alt="Mapa" height="400"> |
+| Splash Screen | Iniciar Sesión | Registrarse |
+|:------------:|:--------------:|:-----------:|
+| <img src="docs/images/splash_screen.png" alt="Splash Screen" height="350"> | <img src="docs/images/iniciar_sesion.png" alt="Iniciar Sesión" height="350"> | <img src="docs/images/registrarse.png" alt="Registrarse" height="350"> |
 
-| Menú de Navegación | Vista de Perfil | Detalle de Vehículo |
-|:---------------:|:------------------:|:-------------------:|
-| <img src="docs/images/menu.png" alt="Menú" height="400"> | <img src="docs/images/perfil.png" alt="Perfil" height="400"> | <img src="docs/images/detalle_vehiculo.png" alt="Detalle de Vehículo" height="400"> |
+| Vista de Mapa | Menú de Navegación | Detalle de Vehículo |
+|:-------------:|:-----------------:|:-------------------:|
+| <img src="docs/images/map.png" alt="Mapa" height="350"> | <img src="docs/images/menu.png" alt="Menú" height="350"> | <img src="docs/images/detalle_vehiculo.png" alt="Detalle de Vehículo" height="350"> |
 
-| Lista de Vehículos | Perfil de Vehículo |
-|:------------------:|:-------------------:|
-| <img src="docs/images/lista_vehiculos.jpg" alt="Lista de Vehículos" height="400"> | <img src="docs/images/perfil_vehiculo.png" alt="Perfil de Vehículo" height="400"> |
+| Lista de Vehículos | Perfil de Vehículo | Vista de Perfil |
+|:-----------------:|:------------------:|:---------------:|
+| <img src="docs/images/lista_vehiculos.jpg" alt="Lista de Vehículos" height="350"> | <img src="docs/images/perfil_vehiculo.png" alt="Perfil de Vehículo" height="350"> | <img src="docs/images/perfil.png" alt="Perfil" height="350"> |
 
 Estas capturas ilustran la interfaz de usuario y las funcionalidades clave de la aplicación, incluyendo:
+- Pantalla de inicio con animación de carga
 - Autenticación de usuarios (inicio de sesión y registro)
 - Visualización de mapas y ubicaciones
 - Gestión de perfiles y vehículos
