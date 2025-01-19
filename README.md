@@ -44,6 +44,7 @@
       - [Monitoreo de Vehículos](#monitoreo-de-vehículos)
       - [Interfaz de Usuario](#interfaz-de-usuario)
   - [CI/CD y Automatización](#cicd-y-automatización)
+    - [Pull Requests y Code Review](#pull-requests-y-code-review)
     - [Integración con GitHub AI](#integración-con-github-ai)
     - [Flujo de Trabajo de CI](#flujo-de-trabajo-de-ci)
     - [Comandos de AI en Pull Requests](#comandos-de-ai-en-pull-requests)
@@ -440,23 +441,34 @@ API_TOKEN=your_api_token
 
 ## CI/CD y Automatización
 
-El proyecto implementa un sistema completo de CI/CD usando GitHub Actions en combinación con GitHub AI para mejorar continuamente la calidad del código:
+El proyecto implementa un sistema completo de CI/CD usando GitHub Actions en combinación con GitHub AI para mejorar continuamente la calidad del código.
+
+### Pull Requests y Code Review
+
+Vista general de los Pull Requests del proyecto mostrando el estado, etiquetas y revisiones
+
+<img src="docs/images/pull_requests_status.png" alt="Estado de Pull Requests" width="500">
+
+Como se puede observar en la imagen, los Pull Requests están organizados con:
+- **Etiquetas específicas**: 
+  - `enhancement`: Para mejoras y nuevas características
+  - `documentation`: Para cambios en la documentación
+  - `style`: Para cambios en el diseño y UI
+
+
+Los Pull Requests en el proyecto siguen un flujo de trabajo estructurado:
+- Revisión automática por GitHub AI
+- Code review por parte del equipo (AI)
+- Verificación de estándares de código (linting)
+- Generación de APK de debug
+
+Además, si estuvieramos en una etapa de desarrollo, se podría desplegar a Firebase App Distribution.
 
 ### Integración con GitHub AI
 ![GitHub Actions con AI](docs/images/github-actions-ai.png)
 
 ### Flujo de Trabajo de CI
 ![Android CI Workflow](docs/images/android_ci_workflow.png)
-
-Como se muestra en la imagen, el flujo de trabajo de CI incluye:
-- ✅ **Verificación de Código**: Análisis automático del código mediante ktlint y Android Lint
-- 📊 **Generación de Reportes**: Creación y almacenamiento de informes de análisis
-- 🔄 **Integración Continua**: Verificación automática en cada pull request
-
-El proyecto utiliza una innovadora combinación de GitHub Actions y AI para:
-- **Revisión Automática de Código**: Cada pull request es analizado por AI para detectar posibles mejoras y problemas.
-- **Sugerencias de Optimización**: La AI proporciona recomendaciones específicas para mejorar el código.
-- **Detección de Errores**: Identificación temprana de problemas potenciales antes de que lleguen a producción.
 
 ### Comandos de AI en Pull Requests
 Los desarrolladores pueden utilizar comandos especiales en los comentarios:
