@@ -9,6 +9,8 @@
   - [Vistas de la Aplicación](#vistas-de-la-aplicación)
   - [Arquitectura](#arquitectura)
   - [Funcionalidades](#funcionalidades)
+    - [Implementadas](#implementadas)
+    - [Funcionalidades Futuras](#funcionalidades-futuras)
   - [Tecnologías Utilizadas](#tecnologías-utilizadas)
   - [Estructura del Proyecto](#estructura-del-proyecto)
   - [Requisitos Previos](#requisitos-previos)
@@ -116,26 +118,42 @@ La arquitectura de **GeoFleet** está diseñada para maximizar la eficiencia y e
 
 ## Funcionalidades
 
-- **🗺️ Mapa en Tiempo Real**  
-  Muestra en Google Maps la posición de los vehículos.
+### Implementadas
 
-- **💾 Base de Datos Local**  
-  Uso de **Room Database** para acceso sin conexión.
+- **Login (Autenticación de Usuarios)**  
+  Los usuarios pueden registrarse e iniciar sesión de forma segura utilizando Firebase Authentication.
+
+- **🗺️ Mapa en Tiempo Real**  
+  Visualización de la ubicación actual de los vehículos en un mapa interactivo mediante Google Maps SDK.
+
+- **📋 Listado de Vehículos**  
+  - Lista de vehículos con información como alias, matrícula, estado, tipo de vehículo, etc.
+  - Posibilidad de complementar y editar información no presente en la base de datos original, guardándola en Firebase.
+
+- **📱 Detalles del Vehículo**  
+  Información detallada de cada vehículo, accesible desde el listado.
 
 - **🔄 Sincronización en Tiempo Real**  
-  Integración con **Firebase Firestore** para actualizaciones instantáneas.
+  Integración con Firebase Firestore para actualizaciones instantáneas.
 
-- **📱 Gestión de Perfiles**  
-  Subida y manejo de imágenes en **Firebase Storage** y login con **Firebase Authentication**.
+- **💾 Modo Offline**  
+  Acceso a información básica de la aplicación sin conexión a internet, utilizando Room Database.
 
-- **🌐 Interfaz Moderna**  
-  Basada en **Material Design 3**, con navegación limpia y soporte para gestos de Android.
+### Funcionalidades Futuras
 
-- **👤 Gestión Avanzada de Perfiles**
-  - Edición de datos personales (nombre, cargo, género)
-  - Selector de fecha de nacimiento localizado
-  - Sistema robusto de manejo de imágenes de perfil
-  - Sincronización en tiempo real con Firebase
+- **🔔 Notificaciones Push**  
+  Envío de notificaciones sobre eventos relevantes (por definir según las necesidades).
+
+- **📊 Análisis de Datos**  
+  Visualización de estadísticas y datos relevantes sobre el uso y rendimiento de los vehículos.
+
+- **🗺️ Histórico de Rutas**  
+  Visualización de las rutas recorridas por los vehículos, con filtros de fecha y hora.
+
+- **📍 Compartir Ubicación**  
+  Permitir al usuario compartir la ubicación de un vehículo con otros usuarios.
+
+Estas funcionalidades futuras están planificadas para mejorar la experiencia del usuario y ofrecer un conjunto más completo de herramientas para la gestión de flotas.
 
 ---
 
