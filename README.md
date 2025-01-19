@@ -280,7 +280,7 @@ Estos patrones permiten que **GeoFleet** sea una aplicación robusta y mantenibl
 
 ### Implementadas
 
-- **Login (Autenticación de Usuarios)**  
+- **👤Login (Autenticación de Usuarios)**  
   Los usuarios pueden registrarse e iniciar sesión de forma segura utilizando Firebase Authentication.
 
 - **🗺️ Mapa en Tiempo Real**  
