@@ -199,20 +199,78 @@ La arquitectura de **GeoFleet** está diseñada para maximizar la eficiencia y e
 ### Patrones de Diseño
 
 - **Repository Pattern**:
-  - Proporciona una abstracción sobre las fuentes de datos, permitiendo cambiar la implementación sin afectar otras partes del código.
+  Proporciona una abstracción sobre las fuentes de datos, permitiendo una separación clara entre la lógica de negocio y el acceso a datos:
+
+  ```kotlin
+  class VehicleRepository(context: Context) {
+      private val apiService: VehicleApiService = // Configuración de Retrofit
+      private val vehicleDao: VehiclePositionDao // Room Database
+
+      // Obtener posiciones de vehículos combinando datos locales y remotos
+      suspend fun getVehiclePositions(ids: List<String>): Map<String, VehiclePosition?> = 
+          withContext(Dispatchers.IO) {
+              // 1. Intentar obtener datos de la API
+              val remoteData = ids.map { id ->
+                  async {
+                      try {
+                          val response = apiService.getVehiclePosition(id)
+                          id to response.body()
+                      } catch (e: Exception) {
+                          id to null
+                      }
+                  }
+              }.awaitAll().toMap()
+
+              // 2. Guardar en base de datos local
+              remoteData.forEach { (id, position) ->
+                  position?.let { vehicleDao.insert(it) }
+              }
+
+              remoteData
+          }
+  }
+  ```
 
 - **Observer Pattern** (LiveData/Flow):
-  - Permite que los componentes de la UI observen cambios en los datos y se actualicen automáticamente, mejorando la reactividad y la eficiencia.
+  Permite que la UI reaccione automáticamente a cambios en los datos:
 
-- **SOLID**:
-  - Principios de diseño que aseguran que el código sea fácil de mantener y extender. Incluyen:
-    - **S**ingle Responsibility: Cada clase tiene una única responsabilidad.
-    - **O**pen/Closed: Las clases están abiertas a extensión pero cerradas a modificación.
-    - **L**iskov Substitution: Las clases derivadas deben ser sustituibles por sus clases base.
-    - **I**nterface Segregation: Las interfaces deben ser específicas y no forzar a implementar métodos innecesarios.
-    - **D**ependency Inversion: Las dependencias deben basarse en abstracciones, no en concreciones.
+  ```kotlin
+  class VehicleProfileViewModel : ViewModel() {
+      // Estado de UI usando StateFlow
+      private val _vehicle = MutableStateFlow<Vehicle?>(null)
+      val vehicle: StateFlow<Vehicle?> = _vehicle.asStateFlow()
 
-Esta arquitectura permite que **GeoFleet** sea una aplicación robusta, flexible y fácil de mantener, preparada para futuras expansiones y mejoras.
+      fun loadVehicle(vehicleId: String) {
+          viewModelScope.launch {
+              try {
+                  val vehicleData = repository.getVehicle(vehicleId)
+                  _vehicle.value = vehicleData
+              } catch (e: Exception) {
+                  // Manejar error
+              }
+          }
+      }
+  }
+
+  // En el Fragment
+  class VehicleProfileFragment : Fragment() {
+      private val viewModel: VehicleProfileViewModel by viewModels()
+
+      override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+          // Observar cambios y actualizar UI
+          viewLifecycleOwner.lifecycleScope.launch {
+              viewModel.vehicle.collect { vehicle ->
+                  vehicle?.let { 
+                      binding.vehicleName.text = it.name
+                      binding.vehicleStatus.text = it.status
+                  }
+              }
+          }
+      }
+  }
+  ```
+
+Estos patrones permiten que **GeoFleet** sea una aplicación robusta y mantenible, con una clara separación de responsabilidades y una UI reactiva que se actualiza automáticamente cuando cambian los datos.
 
 <div class="page"/>
 
