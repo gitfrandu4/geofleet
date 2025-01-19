@@ -1,59 +1,59 @@
-# Theme Implementation Documentation
+# Documentación de Implementación de Temas
 
-## Overview
+## Descripción General
 
-This document details the implementation of Material Design 3 theming in GeoFleet, including color resources management and dark theme support.
+Este documento detalla la implementación de temas de Material Design 3 en GeoFleet, incluyendo la gestión de recursos de color y soporte para tema oscuro.
 
-## Color System Implementation
+## Implementación del Sistema de Colores
 
-### Base Theme Colors
+### Colores Base del Tema
 
-The application implements a comprehensive Material Design 3 color system with both light and dark theme variants. The color system is structured in two main files:
+La aplicación implementa un sistema completo de colores de Material Design 3 con variantes tanto para tema claro como oscuro. El sistema de colores está estructurado en dos archivos principales:
 
-- `values/colors.xml`: Default (light) theme colors
-- `values-night/colors.xml`: Dark theme specific colors
+- `values/colors.xml`: Colores del tema predeterminado (claro)
+- `values-night/colors.xml`: Colores específicos del tema oscuro
 
-### Color Tokens
+### Tokens de Color
 
-Key semantic color tokens used throughout the application:
+Tokens de color semánticos clave utilizados en toda la aplicación:
 
 ```xml
-Primary Colors:
+Colores Primarios:
 - md_theme_dark_primary
 - md_theme_dark_onPrimary
 - md_theme_dark_primaryContainer
 - md_theme_dark_onPrimaryContainer
 
-Secondary Colors:
+Colores Secundarios:
 - md_theme_dark_secondary
 - md_theme_dark_onSecondary
 - md_theme_dark_secondaryContainer
 - md_theme_dark_onSecondaryContainer
 
-Tertiary Colors:
+Colores Terciarios:
 - md_theme_dark_tertiary
 - md_theme_dark_onTertiary
 - md_theme_dark_tertiaryContainer
 - md_theme_dark_onTertiaryContainer
 ```
 
-## Resource Organization
+## Organización de Recursos
 
-### 1. Base Colors (`values/colors.xml`)
-- Contains default light theme colors
-- Includes brand-specific colors
-- Provides fallback values for all color resources
+### 1. Colores Base (`values/colors.xml`)
+- Contiene colores predeterminados del tema claro
+- Incluye colores específicos de la marca
+- Proporciona valores de respaldo para todos los recursos de color
 
-### 2. Night Colors (`values-night/colors.xml`)
-- Contains dark theme specific colors
-- Automatically applied when dark theme is active
-- Maintains consistent naming with base colors
+### 2. Colores Nocturnos (`values-night/colors.xml`)
+- Contiene colores específicos del tema oscuro
+- Se aplica automáticamente cuando el tema oscuro está activo
+- Mantiene nombres consistentes con los colores base
 
-## Theme Integration
+## Integración del Tema
 
-### Layout Implementation
+### Implementación en Layouts
 
-Example usage in layouts:
+Ejemplo de uso en layouts:
 
 ```xml
 <com.google.android.material.card.MaterialCardView
@@ -61,7 +61,7 @@ Example usage in layouts:
     android:layout_height="wrap_content"
     style="@style/Widget.Material3.CardView.Elevated">
 
-    <!-- Content using theme colors -->
+    <!-- Contenido usando colores del tema -->
     <TextView
         android:textColor="?attr/colorOnSurface"
         android:background="?attr/colorSurface"
@@ -69,76 +69,76 @@ Example usage in layouts:
 </com.google.android.material.card.MaterialCardView>
 ```
 
-### Best Practices
+### Mejores Prácticas
 
-1. **Color References**
-   - Always use theme attributes (`?attr/colorPrimary`) instead of direct color references
-   - Maintain consistency across light and dark themes
+1. **Referencias de Color**
+   - Siempre usar atributos del tema (`?attr/colorPrimary`) en lugar de referencias directas a colores
+   - Mantener consistencia entre temas claro y oscuro
 
-2. **Resource Naming**
-   - Follow Material Design 3 naming conventions
-   - Use descriptive prefixes for custom colors
+2. **Nomenclatura de Recursos**
+   - Seguir las convenciones de nombres de Material Design 3
+   - Usar prefijos descriptivos para colores personalizados
 
-3. **Accessibility**
-   - Ensure sufficient contrast ratios
-   - Test color combinations in both themes
+3. **Accesibilidad**
+   - Asegurar ratios de contraste suficientes
+   - Probar combinaciones de colores en ambos temas
 
-## Common Issues and Solutions
+## Problemas Comunes y Soluciones
 
-### 1. Missing Default Resources
-Problem: Colors defined in `values-night` but missing in base `values`.
-Solution: Always define colors in both locations.
+### 1. Recursos Predeterminados Faltantes
+Problema: Colores definidos en `values-night` pero faltantes en `values` base.
+Solución: Siempre definir colores en ambas ubicaciones.
 
 ```xml
-// In values/colors.xml
+// En values/colors.xml
 <color name="md_theme_dark_primary">#006C4C</color>
 
-// In values-night/colors.xml
+// En values-night/colors.xml
 <color name="md_theme_dark_primary">#6CDBAC</color>
 ```
 
-### 2. Theme Attribute Resolution
-Problem: Direct color references don't adapt to theme changes.
-Solution: Use theme attributes.
+### 2. Resolución de Atributos del Tema
+Problema: Las referencias directas a colores no se adaptan a los cambios de tema.
+Solución: Usar atributos del tema.
 
 ```xml
-<!-- Incorrect -->
+<!-- Incorrecto -->
 android:textColor="@color/md_theme_dark_primary"
 
-<!-- Correct -->
+<!-- Correcto -->
 android:textColor="?attr/colorPrimary"
 ```
 
-## Testing Theme Implementation
+## Pruebas de Implementación del Tema
 
-1. **Runtime Testing**
+1. **Pruebas en Tiempo de Ejecución**
    ```kotlin
-   // Force dark theme
+   // Forzar tema oscuro
    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
 
-   // Force light theme
+   // Forzar tema claro
    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
    ```
 
-2. **Visual Testing**
-   - Test layouts in both themes
-   - Verify color contrast meets accessibility standards
-   - Check dynamic color adaptation
+2. **Pruebas Visuales**
+   - Probar layouts en ambos temas
+   - Verificar que el contraste de color cumpla con los estándares de accesibilidad
+   - Comprobar la adaptación dinámica del color
 
-## Additional Resources
+## Recursos Adicionales
 
-- [Material Design Color System](https://m3.material.io/styles/color/overview)
-- [Android Theme Attributes](https://developer.android.com/develop/ui/views/theming/themes)
-- [Dark Theme Implementation](https://developer.android.com/develop/ui/views/theming/darktheme)
+- [Sistema de Color de Material Design](https://m3.material.io/styles/color/overview)
+- [Atributos de Tema en Android](https://developer.android.com/develop/ui/views/theming/themes)
+- [Implementación del Tema Oscuro](https://developer.android.com/develop/ui/views/theming/darktheme)
 
-## Maintenance Notes
+## Notas de Mantenimiento
 
-1. **Adding New Colors**
-   - Add to both `values/colors.xml` and `values-night/colors.xml`
-   - Document usage in this file
-   - Update theme attributes if necessary
+1. **Agregar Nuevos Colores**
+   - Agregar tanto en `values/colors.xml` como en `values-night/colors.xml`
+   - Documentar el uso en este archivo
+   - Actualizar atributos del tema si es necesario
 
-2. **Color Updates**
-   - Test changes in both themes
-   - Verify accessibility compliance
-   - Update documentation accordingly
+2. **Actualizaciones de Color**
+   - Probar cambios en ambos temas
+   - Verificar cumplimiento de accesibilidad
+   - Actualizar documentación según corresponda
