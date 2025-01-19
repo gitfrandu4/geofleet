@@ -69,6 +69,10 @@
 
 Su finalidad es brindar una **vista centralizada** de la ubicación de cada vehículo, con actualizaciones en tiempo real y funciones complementarias como **gestión de perfiles**, **persistencia local**, y **sincronización de datos**.
 
+<p align="center">
+  <img src="docs/images/logo.png" alt="Logo" height="100">
+</p>
+
 ---
 
 ## Objetivos
