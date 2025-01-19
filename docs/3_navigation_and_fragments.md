@@ -1,12 +1,12 @@
-# Navigation and Fragments Implementation
+# Implementación de Navegación y Fragmentos
 
-## Overview
-The app implements a Material Design 3 navigation system using a Navigation Drawer and fragments for different sections. The navigation is handled by the Android Navigation Component, providing a consistent and predictable user experience.
+## Descripción General
+La aplicación implementa un sistema de navegación Material Design 3 utilizando un Navigation Drawer y fragmentos para diferentes secciones. La navegación se maneja mediante el Componente de Navegación de Android, proporcionando una experiencia de usuario consistente y predecible.
 
-## Main Components
+## Componentes Principales
 
 ### MainActivity
-The central activity that hosts the navigation system and fragments:
+La actividad central que aloja el sistema de navegación y fragmentos:
 
 ```kotlin
 class MainActivity : AppCompatActivity() {
@@ -14,7 +14,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var navController: NavController
 
-    // Navigation setup
+    // Configuración de navegación
     val navHostFragment = supportFragmentManager
         .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
     navController = navHostFragment.navController
@@ -26,8 +26,8 @@ class MainActivity : AppCompatActivity() {
 }
 ```
 
-### Navigation Graph
-Defined in `nav_graph.xml`, specifies the navigation structure:
+### Gráfico de Navegación
+Definido en `nav_graph.xml`, especifica la estructura de navegación:
 
 ```xml
 <navigation
@@ -51,77 +51,77 @@ Defined in `nav_graph.xml`, specifies the navigation structure:
 </navigation>
 ```
 
-## Fragments
+## Fragmentos
 
-### 1. Vehicle Positions Fragment
-Displays real-time vehicle positions in a list format:
-- SwipeRefreshLayout for pull-to-refresh
-- RecyclerView for position list
-- Offline support via Room database
-- Real-time updates using Flow
+### 1. Fragmento de Posiciones de Vehículos
+Muestra las posiciones de vehículos en tiempo real en formato lista:
+- SwipeRefreshLayout para actualizar al deslizar
+- RecyclerView para la lista de posiciones
+- Soporte sin conexión mediante base de datos Room
+- Actualizaciones en tiempo real usando Flow
 
-### 2. Fleet Management Fragment
-Manages the fleet of vehicles:
+### 2. Fragmento de Gestión de Flota
+Gestiona la flota de vehículos:
 ```kotlin
 class FleetFragment : Fragment() {
-    // Features:
-    - Search functionality with Material TextInputLayout
-    - RecyclerView for vehicle list
-    - FloatingActionButton for adding new vehicles
-    - Material Design 3 components throughout
+    // Características:
+    - Funcionalidad de búsqueda con Material TextInputLayout
+    - RecyclerView para lista de vehículos
+    - FloatingActionButton para agregar nuevos vehículos
+    - Componentes Material Design 3 en toda la interfaz
 }
 ```
 
-Layout structure:
+Estructura del layout:
 ```xml
 <CoordinatorLayout>
     <ConstraintLayout>
-        <TextInputLayout/> <!-- Search -->
-        <RecyclerView/>    <!-- Vehicle list -->
+        <TextInputLayout/> <!-- Búsqueda -->
+        <RecyclerView/>    <!-- Lista de vehículos -->
     </ConstraintLayout>
-    <FloatingActionButton/> <!-- Add vehicle -->
+    <FloatingActionButton/> <!-- Agregar vehículo -->
 </CoordinatorLayout>
 ```
 
-### 3. Profile Fragment
-Handles user profile management:
+### 3. Fragmento de Perfil
+Maneja la gestión del perfil de usuario:
 ```kotlin
 class ProfileFragment : Fragment() {
-    // Features:
-    - Profile image with circular shape
-    - Editable user name
-    - Read-only email display
-    - Profile update functionality
-    - Logout option
+    // Características:
+    - Imagen de perfil con forma circular
+    - Nombre de usuario editable
+    - Visualización de correo electrónico (solo lectura)
+    - Funcionalidad de actualización de perfil
+    - Opción de cierre de sesión
 }
 ```
 
-Layout structure:
+Estructura del layout:
 ```xml
 <NestedScrollView>
     <ConstraintLayout>
-        <ShapeableImageView/>  <!-- Profile picture -->
-        <TextInputLayout/>     <!-- Name input -->
-        <TextInputLayout/>     <!-- Email display -->
-        <MaterialButton/>      <!-- Save changes -->
-        <MaterialButton/>      <!-- Logout -->
+        <ShapeableImageView/>  <!-- Foto de perfil -->
+        <TextInputLayout/>     <!-- Campo de nombre -->
+        <TextInputLayout/>     <!-- Visualización de correo -->
+        <MaterialButton/>      <!-- Guardar cambios -->
+        <MaterialButton/>      <!-- Cerrar sesión -->
     </ConstraintLayout>
 </NestedScrollView>
 ```
 
-## Material Design 3 Implementation
+## Implementación Material Design 3
 
-### Components Used
-- MaterialToolbar for top app bar
-- NavigationView for drawer
-- MaterialButton for actions
-- TextInputLayout for text inputs
-- FloatingActionButton for primary actions
-- MaterialCardView for list items
-- ShapeableImageView for profile picture
+### Componentes Utilizados
+- MaterialToolbar para la barra superior
+- NavigationView para el drawer
+- MaterialButton para acciones
+- TextInputLayout para entradas de texto
+- FloatingActionButton para acciones principales
+- MaterialCardView para elementos de lista
+- ShapeableImageView para foto de perfil
 
-### Styles
-Custom styles for consistent appearance:
+### Estilos
+Estilos personalizados para apariencia consistente:
 ```xml
 <style name="CircleImageView">
     <item name="cornerFamily">rounded</item>
@@ -129,32 +129,32 @@ Custom styles for consistent appearance:
 </style>
 ```
 
-## Navigation Flow
-1. User logs in through LoginActivity
-2. MainActivity launches with navigation drawer
-3. VehiclePositionsFragment shown as initial screen
-4. User can navigate between sections using drawer
-5. Back button closes drawer if open, otherwise follows system back behavior
+## Flujo de Navegación
+1. Usuario inicia sesión a través de LoginActivity
+2. MainActivity se inicia con navigation drawer
+3. VehiclePositionsFragment se muestra como pantalla inicial
+4. Usuario puede navegar entre secciones usando el drawer
+5. Botón atrás cierra el drawer si está abierto, de lo contrario sigue el comportamiento del sistema
 
-## Dependencies
+## Dependencias
 ```gradle
 implementation "androidx.navigation:navigation-fragment-ktx:2.7.7"
 implementation "androidx.navigation:navigation-ui-ktx:2.7.7"
 implementation 'com.google.android.material:material:1.11.0'
 ```
 
-## Future Enhancements
-1. Fleet Management:
-   - Vehicle addition/editing
-   - Vehicle details view
-   - Search filters
+## Mejoras Futuras
+1. Gestión de Flota:
+   - Adición/edición de vehículos
+   - Vista de detalles de vehículo
+   - Filtros de búsqueda
 
-2. Profile Management:
-   - Profile picture upload
-   - Additional user settings
-   - Theme preferences
+2. Gestión de Perfil:
+   - Carga de foto de perfil
+   - Configuraciones adicionales de usuario
+   - Preferencias de tema
 
 3. General:
-   - Deep linking support
-   - Transition animations
-   - Tablet layout optimization 
+   - Soporte para deep linking
+   - Animaciones de transición
+   - Optimización de layout para tablets

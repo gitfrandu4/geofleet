@@ -1,12 +1,12 @@
-# Splash Screen Implementation
+# Implementación de Pantalla de Inicio
 
-## Overview
-The app implements a splash screen using Android 12's SplashScreen API to provide a smooth launch experience while checking authentication status. The splash screen displays the app's icon and brand color during the initial app launch.
+## Descripción General
+La aplicación implementa una pantalla de inicio utilizando la API SplashScreen de Android 12 para proporcionar una experiencia de inicio suave mientras verifica el estado de autenticación. La pantalla de inicio muestra el ícono de la aplicación y el color de marca durante el lanzamiento inicial de la aplicación.
 
-## Implementation Details
+## Detalles de Implementación
 
-### 1. Theme Configuration
-Located in `themes.xml`:
+### 1. Configuración del Tema
+Ubicado en `themes.xml`:
 ```xml
 <style name="Theme.GeoFleet.Splash" parent="Theme.SplashScreen">
     <item name="windowSplashScreenBackground">@color/brand_color</item>
@@ -16,8 +16,8 @@ Located in `themes.xml`:
 </style>
 ```
 
-### 2. SplashActivity Implementation
-Located in `app/src/main/java/com/example/geofleet/SplashActivity.kt`:
+### 2. Implementación de SplashActivity
+Ubicado en `app/src/main/java/com/example/geofleet/SplashActivity.kt`:
 ```kotlin
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
@@ -28,23 +28,23 @@ class SplashActivity : AppCompatActivity() {
         splashScreen.setKeepOnScreenCondition { true }
 
         lifecycleScope.launch {
-            delay(1000) // Show splash for 1 second
+            delay(1000) // Mostrar splash por 1 segundo
             navigateToNextScreen()
         }
     }
 }
 ```
 
-### 3. Navigation Flow
-1. App launches → Shows splash screen with brand color and app icon
-2. During splash screen:
-   - Checks Firebase authentication status
-   - Determines appropriate destination
-3. Navigates to:
-   - `MapActivity` if user is authenticated
-   - `LoginActivity` if user is not authenticated
+### 3. Flujo de Navegación
+1. La aplicación inicia → Muestra la pantalla de inicio con el color de marca y el ícono
+2. Durante la pantalla de inicio:
+   - Verifica el estado de autenticación de Firebase
+   - Determina el destino apropiado
+3. Navega a:
+   - `MapActivity` si el usuario está autenticado
+   - `LoginActivity` si el usuario no está autenticado
 
-### 4. AndroidManifest Configuration
+### 4. Configuración del AndroidManifest
 ```xml
 <activity
     android:name=".SplashActivity"
@@ -57,26 +57,26 @@ class SplashActivity : AppCompatActivity() {
 </activity>
 ```
 
-## Dependencies
+## Dependencias
 ```gradle
 implementation 'androidx.core:core-splashscreen:1.0.1'
 ```
 
-## Key Features
-- Uses modern SplashScreen API
-- Maintains brand identity with custom colors
-- Handles authentication check during launch
-- Provides smooth transition to appropriate screen
-- No flashing or jarring transitions
+## Características Principales
+- Utiliza la API moderna de SplashScreen
+- Mantiene la identidad de marca con colores personalizados
+- Maneja la verificación de autenticación durante el inicio
+- Proporciona una transición suave a la pantalla apropiada
+- Sin destellos ni transiciones bruscas
 
-## Technical Notes
-1. The splash screen is kept visible using `setKeepOnScreenCondition { true }` until authentication check completes
-2. A 1-second delay ensures smooth animation and prevents jarring transitions
-3. Uses Kotlin coroutines for asynchronous operations
-4. Follows Material Design guidelines for splash screens
+## Notas Técnicas
+1. La pantalla de inicio se mantiene visible usando `setKeepOnScreenCondition { true }` hasta que se complete la verificación de autenticación
+2. Un retraso de 1 segundo asegura una animación suave y evita transiciones bruscas
+3. Utiliza corrutinas de Kotlin para operaciones asíncronas
+4. Sigue las pautas de Material Design para pantallas de inicio
 
-## Future Enhancements
-1. Add custom exit animation
-2. Implement progress indicator for long-running operations
-3. Add offline mode detection
-4. Cache authentication state for faster startup 
+## Mejoras Futuras
+1. Agregar animación de salida personalizada
+2. Implementar indicador de progreso para operaciones largas
+3. Agregar detección de modo sin conexión
+4. Almacenar en caché el estado de autenticación para un inicio más rápido 

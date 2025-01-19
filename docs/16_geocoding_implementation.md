@@ -1,68 +1,68 @@
-# Geocoding Implementation
+# Implementación de Geocodificación
 
-## Overview
-The GeoFleet application now includes geocoding functionality to convert vehicle coordinates into human-readable addresses. This feature enhances user experience by displaying location information in a more understandable format.
+## Descripción General
+La aplicación GeoFleet ahora incluye funcionalidad de geocodificación para convertir coordenadas de vehículos en direcciones legibles por humanos. Esta característica mejora la experiencia del usuario al mostrar la información de ubicación en un formato más comprensible.
 
-## Key Components
+## Componentes Principales
 
-### GeocodedAddress Entity
+### Entidad GeocodedAddress
 ```kotlin
 @Entity(tableName = "geocoded_addresses")
 data class GeocodedAddress(
-    val coordinates: String,  // Format: "lat,lng"
+    val coordinates: String,  // Formato: "lat,lng"
     val address: String,
     val timestamp: Long = System.currentTimeMillis()
 )
 ```
 
 ### GeocodingRepository
-The `GeocodingRepository` class handles the geocoding process with the following features:
-- Uses Android's Geocoder API for coordinate-to-address conversion
-- Implements local caching to minimize API calls
-- Cache validity period of 7 days
-- Fallback to raw coordinates if geocoding fails
+La clase `GeocodingRepository` maneja el proceso de geocodificación con las siguientes características:
+- Utiliza la API Geocoder de Android para la conversión de coordenadas a direcciones
+- Implementa caché local para minimizar llamadas a la API
+- Período de validez de caché de 7 días
+- Retroceso a coordenadas crudas si la geocodificación falla
 
-### Caching Strategy
-- Addresses are cached in a local Room database
-- Each cached entry includes:
-  - Coordinates string
-  - Geocoded address
-  - Timestamp for cache invalidation
-- Automatic cleanup of expired cache entries
+### Estrategia de Caché
+- Las direcciones se almacenan en caché en una base de datos Room local
+- Cada entrada en caché incluye:
+  - Cadena de coordenadas
+  - Dirección geocodificada
+  - Marca de tiempo para invalidación de caché
+- Limpieza automática de entradas de caché expiradas
 
-### Error Handling
-- Graceful fallback to raw coordinates if:
-  - Geocoding service is unavailable
-  - No address found for coordinates
-  - Network errors occur
-- Comprehensive logging for debugging
+### Manejo de Errores
+- Retroceso elegante a coordenadas crudas si:
+  - El servicio de geocodificación no está disponible
+  - No se encuentra dirección para las coordenadas
+  - Ocurren errores de red
+- Registro completo para depuración
 
-## Implementation Details
+## Detalles de Implementación
 
-### Database Integration
-- Added `GeocodedAddress` entity to the main Room database
-- Database version updated to handle the new entity
-- Implemented `GeocodedAddressDao` for database operations
+### Integración con Base de Datos
+- Entidad `GeocodedAddress` añadida a la base de datos Room principal
+- Versión de base de datos actualizada para manejar la nueva entidad
+- Implementación de `GeocodedAddressDao` para operaciones de base de datos
 
-### Vehicle List Display
-- Updated `VehicleAdapter` to show:
-  - Loading state while fetching address
-  - Geocoded address when available
-  - Fallback to coordinates if needed
-- Added location icon for better visual feedback
+### Visualización en Lista de Vehículos
+- `VehicleAdapter` actualizado para mostrar:
+  - Estado de carga mientras se obtiene la dirección
+  - Dirección geocodificada cuando está disponible
+  - Retroceso a coordenadas si es necesario
+- Icono de ubicación añadido para mejor retroalimentación visual
 
-### Performance Considerations
-- Asynchronous geocoding using Kotlin coroutines
-- Local caching to reduce API calls
-- Batch cleanup of expired cache entries
+### Consideraciones de Rendimiento
+- Geocodificación asíncrona usando corrutinas de Kotlin
+- Caché local para reducir llamadas a la API
+- Limpieza por lotes de entradas de caché expiradas
 
-## Configuration
-- No additional API keys required (uses Android's built-in Geocoder)
-- Cache duration configurable in `GeocodingRepository`
-- Logging enabled for debugging purposes
+## Configuración
+- No se requieren claves de API adicionales (usa el Geocoder integrado de Android)
+- Duración de caché configurable en `GeocodingRepository`
+- Registro habilitado para propósitos de depuración
 
-## Future Improvements
-- Implement batch geocoding for multiple locations
-- Add reverse geocoding support
-- Enhance address format customization
-- Consider implementing offline geocoding 
+## Mejoras Futuras
+- Implementar geocodificación por lotes para múltiples ubicaciones
+- Agregar soporte para geocodificación inversa
+- Mejorar la personalización del formato de direcciones
+- Considerar implementar geocodificación sin conexión 
