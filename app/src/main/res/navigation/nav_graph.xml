@@ -14,7 +14,11 @@
     <fragment
         android:id="@+id/nav_fleet"
         android:name="com.example.geofleet.ui.fleet.FleetFragment"
-        android:label="@string/fleet" />
+        android:label="@string/fleet">
+        <action
+            android:id="@+id/action_fleetFragment_to_vehicleProfileFragment"
+            app:destination="@id/vehicleProfileFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_profile"
@@ -30,9 +34,5 @@
             android:name="vehicleId"
             app:argType="string" />
     </fragment>
-
-    <action
-        android:id="@+id/action_fleetFragment_to_vehicleProfileFragment"
-        app:destination="@id/vehicleProfileFragment" />
 
 </navigation> 

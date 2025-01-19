@@ -8,7 +8,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -17,6 +16,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.geofleet.R
+import com.example.geofleet.data.local.AppDatabase
+import com.example.geofleet.data.repository.GeocodingRepository
 import com.example.geofleet.databinding.FragmentFleetBinding
 import com.example.geofleet.ui.MapActivity
 import com.google.android.material.snackbar.Snackbar
@@ -47,18 +48,26 @@ class FleetFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
+        val database = AppDatabase.getDatabase(requireContext())
+        val geocodingRepository =
+            GeocodingRepository(requireContext(), database.geocodedAddressDao())
+
         adapter =
             VehicleAdapter(
                 onProfileClick = { vehicleId ->
-                    val action =
-                        FleetFragmentDirections
-                            .actionFleetFragmentToVehicleProfileFragment(vehicleId)
-                    findNavController().navigate(action)
+                    findNavController()
+                        .navigate(
+                            FleetFragmentDirections
+                                .actionFleetFragmentToVehicleProfileFragment(
+                                    vehicleId
+                                )
+                        )
                 },
                 onMapClick = { vehicleId ->
                     Log.d(TAG, "Map clicked for vehicle: $vehicleId")
                     navigateToMap(vehicleId)
-                }
+                },
+                geocodingRepository = geocodingRepository
             )
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(context)

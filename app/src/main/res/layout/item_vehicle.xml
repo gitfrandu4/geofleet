@@ -28,9 +28,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="8dp"
             android:textAppearance="?attr/textAppearanceHeadline6"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/deleteButton"
             app:layout_constraintStart_toEndOf="@id/vehicleImage"
             app:layout_constraintTop_toTopOf="@id/vehicleImage"
             tools:text="Vehicle 1234" />
@@ -41,10 +41,13 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textAppearance="?attr/textAppearanceBody2"
+            android:drawableStart="@drawable/ic_location"
+            android:drawablePadding="4dp"
+            android:gravity="center_vertical"
             app:layout_constraintEnd_toEndOf="@id/vehicleId"
             app:layout_constraintStart_toStartOf="@id/vehicleId"
             app:layout_constraintTop_toBottomOf="@id/vehicleId"
-            tools:text="Last position: 28.4697, -16.2548" />
+            tools:text="Calle Principal 123, Ciudad" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/profileButton"
@@ -67,6 +70,18 @@
             app:icon="@drawable/ic_map"
             app:layout_constraintStart_toEndOf="@id/profileButton"
             app:layout_constraintTop_toTopOf="@id/profileButton" />
+
+        <ImageButton
+            android:id="@+id/deleteButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/delete_vehicle"
+            android:padding="4dp"
+            android:src="@drawable/ic_delete"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="?attr/colorError" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

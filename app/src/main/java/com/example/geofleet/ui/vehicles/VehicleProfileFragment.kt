@@ -87,7 +87,19 @@ class VehicleProfileFragment : Fragment() {
     }
 
     private fun setupGalleryRecyclerView() {
-        galleryAdapter = GalleryAdapter()
+        galleryAdapter =
+            GalleryAdapter(
+                onDeleteClick = { imageUrl ->
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.delete_image)
+                        .setMessage(R.string.delete_image_confirmation)
+                        .setPositiveButton(R.string.delete) { _, _ ->
+                            viewModel.deleteImage(imageUrl)
+                        }
+                        .setNegativeButton(R.string.cancel, null)
+                        .show()
+                }
+            )
         binding.galleryRecyclerView.apply {
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             adapter = galleryAdapter
@@ -96,7 +108,6 @@ class VehicleProfileFragment : Fragment() {
 
     private fun setupImageButtons() {
         binding.apply {
-            changeProfileImageButton.setOnClickListener { showImagePickerDialog(true) }
             addImageButton.setOnClickListener { showImagePickerDialog(false) }
         }
     }

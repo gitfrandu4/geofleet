@@ -4,12 +4,14 @@
 
 - [GeoFleet - Sistema de Monitoreo de Flotas](#geofleet---sistema-de-monitoreo-de-flotas)
   - [Índice](#índice)
-  - [Descripción General](#descripción-general)
-  - [Objetivos del Proyecto](#objetivos-del-proyecto)
-  - [Arquitectura y Patrones de Diseño](#arquitectura-y-patrones-de-diseño)
-    - [Patrones y Principios Clave](#patrones-y-principios-clave)
-    - [Manejo de Imágenes de Perfil](#manejo-de-imágenes-de-perfil)
-  - [Funcionalidades Clave](#funcionalidades-clave)
+  - [Introducción](#introducción)
+  - [Objetivos](#objetivos)
+  - [Vistas de la Aplicación](#vistas-de-la-aplicación)
+  - [Arquitectura](#arquitectura)
+    - [Patrones de Diseño](#patrones-de-diseño)
+  - [Funcionalidades](#funcionalidades)
+    - [Implementadas](#implementadas)
+    - [Funcionalidades Futuras](#funcionalidades-futuras)
   - [Tecnologías Utilizadas](#tecnologías-utilizadas)
   - [Estructura del Proyecto](#estructura-del-proyecto)
   - [Requisitos Previos](#requisitos-previos)
@@ -23,7 +25,6 @@
   - [Detalles Técnicos Destacados](#detalles-técnicos-destacados)
     - [Integración de Mapas](#integración-de-mapas)
     - [Gestión de Perfiles](#gestión-de-perfiles)
-  - [Funcionalidades Futuras](#funcionalidades-futuras)
   - [Instrucciones para Ejecutar](#instrucciones-para-ejecutar)
   - [Configuración](#configuración)
     - [Archivo config.properties](#archivo-configproperties)
@@ -31,15 +32,16 @@
     - [Funcionalidades Principales](#funcionalidades-principales)
       - [Monitoreo de Vehículos](#monitoreo-de-vehículos)
       - [Interfaz de Usuario](#interfaz-de-usuario)
-  - [CI/CD y Automatización (🤖)](#cicd-y-automatización-)
-    - [Revisión Automática de Código](#revisión-automática-de-código)
-    - [Análisis Automático](#análisis-automático)
-    - [Configuración de Secretos](#configuración-de-secretos)
-  - [Información para la Defensa del Trabajo](#información-para-la-defensa-del-trabajo)
+  - [CI/CD y Automatización](#cicd-y-automatización)
+    - [Integración con GitHub AI](#integración-con-github-ai)
+    - [Flujo de Trabajo de CI](#flujo-de-trabajo-de-ci)
+    - [Comandos de AI en Pull Requests](#comandos-de-ai-en-pull-requests)
+    - [Beneficios de la Integración](#beneficios-de-la-integración)
+  - [Conclusiones](#conclusiones)
 
 ---
 
-## Descripción General
+## Introducción
 
 **GeoFleet** es una aplicación **Android nativa** desarrollada en **Kotlin** que permite **monitorear y gestionar flotas de vehículos** en tiempo real. Combina:
 - **Firebase** (Authentication, Firestore, Storage)
@@ -50,7 +52,7 @@ Su finalidad es brindar una **vista centralizada** de la ubicación de cada veh�
 
 ---
 
-## Objetivos del Proyecto
+## Objetivos
 
 1. **Monitoreo en Tiempo Real**  
    - Actualizar la posición de la flota automáticamente con **Google Maps** y **Firestore**.
@@ -69,78 +71,145 @@ Su finalidad es brindar una **vista centralizada** de la ubicación de cada veh�
 
 ---
 
-## Arquitectura y Patrones de Diseño
+## Vistas de la Aplicación
 
-El proyecto se ha diseñado siguiendo **MVVM** y elementos de **Clean Architecture**:
+Aquí se presentan algunas capturas de pantalla de la aplicación **GeoFleet**, mostrando diferentes funcionalidades y vistas.
 
-- **Model (Dominio & Datos)**  
-  Representa la capa de datos (POJOs, repositorios, uso de Room, etc.).
+| Vista de Mapa | Menú de Navegación | Detalle de Vehículo |
+|:-------------:|:------------------:|:-------------------:|
+| <img src="docs/images/mapa.jpg" alt="Mapa" height="400"> | <img src="docs/images/menu.jpg" alt="Menú" height="400"> | <img src="docs/images/detalle_vehiculo.jpg" alt="Detalle de Vehículo" height="400"> |
 
-- **View (UI)**  
-  Actividades y Fragments que interactúan directamente con el usuario y muestran la información.
+| Vista de Perfil | Lista de Vehículos | Perfil de Vehículo |
+|:---------------:|:------------------:|:-------------------:|
+| <img src="docs/images/perfil.jpg" alt="Perfil" height="400"> | <img src="docs/images/lista_vehiculos.jpg" alt="Lista de Vehículos" height="400"> | <img src="docs/images/perfil_vehiculo.jpg" alt="Perfil de Vehículo" height="400"> |
 
-- **ViewModel (Lógica de Presentación)**  
-  Gestiona la comunicación entre la capa de datos y la vista, manejando estados y eventos.
+Estas capturas ilustran la interfaz de usuario y las funcionalidades clave de la aplicación, como la visualización de mapas.
 
-- **Repositories**  
-  Se encargan de orquestar la obtención y el envío de datos a fuentes como **Room**, **APIs** y **Firebase**.
-
-### Patrones y Principios Clave
-
-- **Repository Pattern**: Abstrae la fuente de datos real ante la UI.  
-- **Observer Pattern**: Uso de **LiveData** y **Flow** para actualizar la UI al cambiar datos.  
-- **Dependency Injection** (opcional): Factible con **Hilt** o **Koin**.  
-- **SOLID**: Se promueve responsabilidad única y separación de intereses.
-
-### Manejo de Imágenes de Perfil
-El proyecto implementa un sistema robusto para el manejo de imágenes de perfil usando un componente personalizado `ProfileImageView` que:
-- Gestiona automáticamente la carga de imágenes desde Firebase Storage
-- Proporciona visualización circular de imágenes
-- Maneja actualizaciones en tiempo real
-- Implementa fallbacks y placeholders
-- Mantiene consistencia en toda la aplicación
+Nota: La información de posición no está disponible en la captura de la lista de vehículos de manera intencional.
 
 ---
 
-## Funcionalidades Clave
+## Arquitectura
+
+![Arquitectura de GeoFleet](docs/images/arquitectura-geofleet.png)
+
+La arquitectura de **GeoFleet** está diseñada para maximizar la eficiencia y escalabilidad, utilizando un enfoque modular basado en el patrón **MVVM** (Model-View-ViewModel). La aplicación se compone de las siguientes capas:
+
+1. **Capa de Interfaz de Usuario (UI)**: 
+   - Incluye actividades y fragmentos que interactúan directamente con el usuario.
+   - Utiliza **Binding** y **Observables** para mantener la UI sincronizada con los datos.
+
+2. **ViewModels**:
+   - Actúan como intermediarios entre la UI y la capa de datos.
+   - Gestionan la lógica de presentación y el estado de la aplicación.
+
+3. **Capa de Repositorio**:
+   - Encapsula la lógica de negocio y maneja la obtención y almacenamiento de datos.
+   - Interactúa con fuentes de datos locales (Room Database) y remotas (Firebase, APIs externas).
+
+4. **Servicios de Firebase**:
+   - Proporcionan autenticación y sincronización en tiempo real a través de **Cloud Firestore**.
+
+5. **Integración Continua y Despliegue**:
+   - Utiliza GitHub Actions para automatizar la integración y despliegue continuo, asegurando que el código se mantenga en alta calidad.
+
+### Patrones de Diseño
+
+- **Repository Pattern**:
+  - Proporciona una abstracción sobre las fuentes de datos, permitiendo cambiar la implementación sin afectar otras partes del código.
+
+- **Observer Pattern** (LiveData/Flow):
+  - Permite que los componentes de la UI observen cambios en los datos y se actualicen automáticamente, mejorando la reactividad y la eficiencia.
+
+- **SOLID**:
+  - Principios de diseño que aseguran que el código sea fácil de mantener y extender. Incluyen:
+    - **S**ingle Responsibility: Cada clase tiene una única responsabilidad.
+    - **O**pen/Closed: Las clases están abiertas a extensión pero cerradas a modificación.
+    - **L**iskov Substitution: Las clases derivadas deben ser sustituibles por sus clases base.
+    - **I**nterface Segregation: Las interfaces deben ser específicas y no forzar a implementar métodos innecesarios.
+    - **D**ependency Inversion: Las dependencias deben basarse en abstracciones, no en concreciones.
+
+Esta arquitectura permite que **GeoFleet** sea una aplicación robusta, flexible y fácil de mantener, preparada para futuras expansiones y mejoras.
+
+
+## Funcionalidades
+
+### Implementadas
+
+- **Login (Autenticación de Usuarios)**  
+  Los usuarios pueden registrarse e iniciar sesión de forma segura utilizando Firebase Authentication.
 
 - **🗺️ Mapa en Tiempo Real**  
-  Muestra en Google Maps la posición de los vehículos.
+  Visualización de la ubicación actual de los vehículos en un mapa interactivo mediante Google Maps SDK.
 
-- **💾 Base de Datos Local**  
-  Uso de **Room Database** para acceso sin conexión.
+- **📋 Listado de Vehículos**  
+  - Lista de vehículos con información como alias, matrícula, estado, tipo de vehículo, etc.
+  - Posibilidad de complementar y editar información no presente en la base de datos original, guardándola en Firebase.
+
+- **📱 Detalles del Vehículo**  
+  Información detallada de cada vehículo, accesible desde el listado.
 
 - **🔄 Sincronización en Tiempo Real**  
-  Integración con **Firebase Firestore** para actualizaciones instantáneas.
+  Integración con Firebase Firestore para actualizaciones instantáneas.
 
-- **📱 Gestión de Perfiles**  
-  Subida y manejo de imágenes en **Firebase Storage** y login con **Firebase Authentication**.
+- **💾 Modo Offline**  
+  Acceso a información básica de la aplicación sin conexión a internet, utilizando Room Database.
 
-- **🌐 Interfaz Moderna**  
-  Basada en **Material Design 3**, con navegación limpia y soporte para gestos de Android.
+### Funcionalidades Futuras
 
-- **👤 Gestión Avanzada de Perfiles**
-  - Edición de datos personales (nombre, cargo, género)
-  - Selector de fecha de nacimiento localizado
-  - Sistema robusto de manejo de imágenes de perfil
-  - Sincronización en tiempo real con Firebase
+- **🔔 Notificaciones Push**  
+  Envío de notificaciones sobre eventos relevantes (por definir según las necesidades).
+
+- **📊 Análisis de Datos**  
+  Visualización de estadísticas y datos relevantes sobre el uso y rendimiento de los vehículos.
+
+- **🗺️ Histórico de Rutas**  
+  Visualización de las rutas recorridas por los vehículos, con filtros de fecha y hora.
+
+- **📍 Compartir Ubicación**  
+  Permitir al usuario compartir la ubicación de un vehículo con otros usuarios.
+
+Estas funcionalidades futuras están planificadas para mejorar la experiencia del usuario y ofrecer un conjunto más completo de herramientas para la gestión de flotas.
 
 ---
 
 ## Tecnologías Utilizadas
 
+En el desarrollo de **GeoFleet**, se han empleado las siguientes herramientas y frameworks:
+
 - **Kotlin**  
-- **Firebase** (Authentication, Firestore, Storage)  
+  Lenguaje oficial para el desarrollo de aplicaciones Android, que destaca por su seguridad (programación null-safe) y su concisión.
+
+- **Firebase (Authentication, Firestore, Storage)**  
+  Plataforma de Google que provee autenticación de usuarios, base de datos en tiempo real y almacenamiento de archivos. Permite la sincronización automática de datos y simplifica la gestión de usuarios.
+
 - **Google Maps SDK**  
-- **Jetpack Components** (Room, Navigation, ViewModel, LiveData, ViewBinding)  
+  Biblioteca nativa de Google para la integración de mapas interactivos, soporte de marcadores personalizados y localización.  
+
+- **Jetpack Components**  
+  Conjunto de librerías de Android que incluye:
+  - **Room**: Persistencia local de datos y consultas reactivas.  
+  - **Navigation**: Manejo de la navegación entre pantallas.  
+  - **ViewModel, LiveData**: Separación de lógica de negocio y supervisión de cambios.  
+  - **ViewBinding**: Conexión segura entre vistas y código, evitando errores de tipo.
+
 - **Coroutines & Flow**  
+  Librerías de Kotlin que facilitan la programación asíncrona y el manejo reactivo de datos, respetando el principio de no bloquear la interfaz de usuario.
+
 - **Material Design 3**  
-- **Retrofit & OkHttp** (para posibles integraciones con APIs externas)  
-- **Glide** (carga de imágenes)
+  Lineamientos de diseño de Google que garantizan consistencia visual, adaptabilidad en múltiples dispositivos y uso de componentes accesibles.
+
+- **Retrofit & OkHttp** 
+  Permiten, en caso de necesitarlo, la comunicación con APIs externas mediante peticiones HTTP, brindando un manejo sencillo de respuestas en formato JSON o XML.
+
+- **Glide**  
+  Librería para la carga y gestión eficiente de imágenes. Permite transformaciones sencillas —como recortes circulares— y almacenamiento en caché.
 
 ---
 
 ## Estructura del Proyecto
+
+La estructura de directorios de **GeoFleet** refleja la separación lógica de capas y funcionalidades, favoreciendo la escalabilidad y el mantenimiento:
 
 ```
 GeoFleet/
@@ -159,11 +228,19 @@ GeoFleet/
 └── proguard-rules.pro             # Configuración de optimización y minificación
 ```
 
----
+1.	**`data/`**: Contiene los modelos de datos, las interfaces DAO de Room y los repositorios que conectan las fuentes de datos locales y remotas.
+
+2.	**`ui/`**: Incluye las Activities y Fragments que representan la capa de presentación. Se integran con ViewModels para manejar la lógica de la aplicación.
+
+3.	**`service/`**: Alberga clases y funciones que interactúan con servicios externos (p. ej. Firebase), gestionando la autenticación y la sincronización en tiempo real.
+
+4.	**`utils/`**: Agrupa utilidades y extensiones usadas en toda la aplicación (métodos de formateo, funciones de extensión, etc.).
 
 ---
 
 ## Requisitos Previos
+
+Antes de compilar y ejecutar el proyecto, se deben cumplir los siguientes requisitos:
 
 - **Software**  
   - Android Studio (Arctic Fox o superior)  
@@ -171,12 +248,14 @@ GeoFleet/
   - Google Play Services  
 
 - **Servicios**  
-  - Cuenta Firebase (Authentication, Firestore y Storage activos)  
-  - API Key de Google Maps  
+  - [Cuenta Firebase](https://console.firebase.google.com/) con Authentication, Firestore y Storage activos.
+  - API Key de Google Maps obtenida desde [Google Cloud Console](https://console.cloud.google.com/).
 
 ---
 
 ## Configuración Técnica
+
+La aplicación requiere ajustar algunos archivos clave y habilitar servicios externos:
 
 ### 1. Firebase
 
@@ -197,9 +276,9 @@ GeoFleet/
 
 ### 3. Gradle
 
-Asegúrate de incluir las siguientes dependencias en `build.gradle`:
+En el archivo `build.gradle` (a nivel de módulo), verifica que estén declarados los plugins y dependencias requeridos:
 
-```
+```groovy
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
@@ -207,6 +286,7 @@ plugins {
 }
 
 android {
+    // Configuración específica del proyecto
     // ...
 }
 
@@ -236,7 +316,7 @@ dependencies {
 
 ## Base de Datos Local y Sincronización
 
-El proyecto implementa una robusta estrategia de sincronización:
+Para asegurar la disponibilidad de datos incluso en condiciones de conectividad inestable, **GeoFleet** implementa una estrategia de sincronización basada en **Room** (offline) y **Firestore** (online).
 
 ### Estructura de Datos
 ```kotlin
@@ -250,19 +330,19 @@ data class VehiclePositionEntity(
 ```
 
 ### Flujo de Datos
-1. **Carga Inicial**:
-   - Carga de IDs desde configuración
-   - Obtención de posiciones desde API
-   - Almacenamiento en Room
-   - Actualización en Firestore
-   - Actualización de UI
 
-2. **Actualizaciones**:
-   - Cancelación de trabajos en curso
-   - Obtención de nuevas posiciones
-   - Actualización de almacenamiento local y en la nube
-   - Actualización de UI
-   - Actualización de contadores
+1. **Carga Inicial**
+
+- Se obtienen los IDs de los vehículos desde la configuración.
+- Se solicitan las posiciones iniciales a través de la API y se guardan en Room.
+- Los cambios se reflejan en Firestore para mantener sincronizados a todos los clientes y permitir acceso remoto.
+
+2. **Actualizaciones**
+
+- La aplicación detecta nuevas posiciones, cancelando cualquier trabajo en curso para evitar duplicidades.
+- Los datos actualizados se almacenan tanto en Room como en Firestore, y la interfaz de usuario se refresca mediante LiveData.
+
+Esta implementación “offline first” garantiza la operatividad de la aplicación aun sin conexión a internet, volcando luego los datos a la nube cuando la conectividad se restablezca.
 
 ---
 
@@ -270,9 +350,11 @@ data class VehiclePositionEntity(
 
 ### Integración de Mapas
 
-- Uso de **Google Maps SDK**.  
-- Marcadores personalizados usando layouts e **Inflate**:
-  ```
+- Uso del **Google Maps SDK** para renderizar y actualizar mapas de forma dinámica.
+- **Marcadores Personalizados**: Se emplean layouts inflados en tiempo de ejecución para crear íconos con información adicional (p. ej. estado del vehículo).
+- **Actualizaciones en Tiempo Real**: Se implementa un ciclo de actualización periódica con corrutinas para mantener la información actualizada.
+
+  ```kotlin
   fun createCustomMarker(): BitmapDescriptor {
       val view = LayoutInflater.from(context).inflate(R.layout.marker_layout, null)
       val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
@@ -283,9 +365,10 @@ data class VehiclePositionEntity(
 
 ### Gestión de Perfiles
 
-- Subida y carga de imágenes con **Firebase Storage**.  
-- Ejemplo de carga con **Glide**:
-  ```
+- **Uso de Firebase Storage**: Permite asociar fotos personalizadas a cada usuario o vehículo.
+- **Glide**: Facilita la carga y transformación de imágenes (p. ej. para recortar avatares en forma circular):
+
+  ```kotlin
   Glide.with(this)
       .load(photoUrl)
       .circleCrop()
@@ -296,15 +379,9 @@ data class VehiclePositionEntity(
 
 ---
 
-## Funcionalidades Futuras
-
-1. **Clustering** de marcadores.  
-2. **Filtros avanzados** (estado, ubicación).  
-3. **Estados de vehículo** con distintos colores de marcadores.
-
----
-
 ## Instrucciones para Ejecutar
+
+Siga estos pasos para desplegar la aplicación en un emulador o dispositivo físico:
 
 1. **Clona el repositorio**:
    ```
@@ -325,7 +402,7 @@ data class VehiclePositionEntity(
 BASE_URL=https://api.example.com/
 
 # IDs de vehículos a monitorear
-vehicle.ids=1528,1793
+vehicle.ids=0001,0002,0003,0004,0005,0006,0007,0008,0009,0010
 
 # Token de autenticación para la API
 API_TOKEN=your_api_token
@@ -350,53 +427,66 @@ API_TOKEN=your_api_token
 
 ---
 
-## CI/CD y Automatización (🤖)
+## CI/CD y Automatización
 
-El proyecto implementa un sistema completo de CI/CD usando GitHub Actions:
+El proyecto implementa un sistema completo de CI/CD usando GitHub Actions en combinación con GitHub AI para mejorar continuamente la calidad del código:
 
-### Revisión Automática de Código
-- **Comandos en Pull Requests**:
-  - `/review`: Obtiene una revisión técnica detallada
-  - `/summary`: Genera un resumen técnico educativo
+### Integración con GitHub AI
+![GitHub Actions con AI](docs/images/github-actions-ai.png)
 
-### Análisis Automático
-- Ejecución de ktlint
-- Análisis con Android Lint
-- Pruebas unitarias
-- Generación y subida de reportes
+### Flujo de Trabajo de CI
+![Android CI Workflow](docs/images/android_ci_workflow.png)
 
-### Configuración de Secretos
-El proyecto requiere la configuración de los siguientes secretos en GitHub:
-- `OPENAI_API_KEY`: Para revisiones de código AI
-- `MAPS_API_KEY`: Para tests de integración
-- `GOOGLE_SERVICES_JSON`: Archivo de configuración de Firebase (en base64)
+Como se muestra en la imagen, el flujo de trabajo de CI incluye:
+- ✅ **Verificación de Código**: Análisis automático del código mediante ktlint y Android Lint
+- 📊 **Generación de Reportes**: Creación y almacenamiento de informes de análisis
+- 🔄 **Integración Continua**: Verificación automática en cada pull request
 
----
+El proyecto utiliza una innovadora combinación de GitHub Actions y AI para:
+- **Revisión Automática de Código**: Cada pull request es analizado por AI para detectar posibles mejoras y problemas.
+- **Sugerencias de Optimización**: La AI proporciona recomendaciones específicas para mejorar el código.
+- **Detección de Errores**: Identificación temprana de problemas potenciales antes de que lleguen a producción.
 
-## Información para la Defensa del Trabajo
+### Comandos de AI en Pull Requests
+Los desarrolladores pueden utilizar comandos especiales en los comentarios:
+- `/review` - Solicita una revisión técnica detallada
+- `/summary` - Genera un resumen técnico del cambio
+- `/suggest` - Obtiene sugerencias de mejora específicas
 
-- **Enfoque Nativo Android**:  
-  - Al basarse en Kotlin y el ecosistema oficial de Android (Jetpack, Google Maps SDK), se aprovechan las optimizaciones y buenas prácticas de la plataforma.  
-  - Permite acceso directo a APIS específicas de Android y una personalización completa de la UI según *Material Design*.
-
-- **Clean Architecture y MVVM**:  
-  - Facilitan la separación de responsabilidades y el escalado de la app, garantizando que nuevas funcionalidades (p. ej. notificaciones push, nuevos módulos de datos) puedan integrarse sin romper la estructura existente.  
-  - La capa de datos se abstrae mediante repositorios, lo que permite intercambiar Firebase por cualquier otro backend sin grandes cambios en la UI.
-
-- **Offline First**:  
-  - La inclusión de **Room Database** asegura que la aplicación siga funcionando en entornos con poca o nula conectividad, lo que es esencial en contextos industriales o de logística donde la cobertura de red puede ser limitada.
-
-- **Sincronización en Tiempo Real**:  
-  - El uso de **Firebase Firestore** proporciona actualizaciones inmediatas a todos los clientes conectados, mejorando la coordinación de la flota y la toma de decisiones en tiempo real.
-
-- **Mejoras de Rendimiento y Testing**:  
-  - Se utilizan **Coroutines** de Kotlin para un manejo eficiente de hilos y evitar bloqueos en la UI.  
-  - Las pruebas de unidad (unit tests) se pueden integrar con frameworks como **JUnit** y de instrumentación (UI tests) con **Espresso**, garantizando la calidad y confiabilidad del proyecto.
-
-- **Futuras Expansiones**:  
-  - El proyecto está preparado para integrar otras APIs (p. ej. de tráfico, clima, rutas) usando **Retrofit & OkHttp**; esto abre posibilidades para planificar y optimizar rutas, obtener datos externos, etc.  
-  - El soporte a **Clustering de Marcadores** mejoraría la visualización de grandes flotas en el mapa.  
-
-Estos puntos refuerzan la solidez y la profesionalidad de GeoFleet como **proyecto de desarrollo de aplicaciones móviles nativas Android**, mostrando una arquitectura limpia, escalable y fácil de mantener, además de una experiencia de usuario óptima.
+### Beneficios de la Integración
+- **Mejora Continua**: Cada PR recibe feedback automático para mejorar la calidad del código
+- **Aprendizaje Activo**: Los desarrolladores reciben sugerencias educativas sobre mejores prácticas
+- **Detección Temprana**: Los problemas se identifican y corrigen antes de llegar a la rama principal
+- **Consistencia**: Asegura que todo el código siga los mismos estándares de calidad
 
 ---
+
+## Conclusiones
+
+El desarrollo de **GeoFleet** ha supuesto un hito formativo al transitar desde el desarrollo web hacia un entorno de aplicaciones móviles Android nativas. A lo largo de esta experiencia, se han afrontado desafíos técnicos, aprovechado herramientas avanzadas y consolidado buenas prácticas que han dado como resultado un producto de calidad. A continuación, se resumen los aspectos más destacados:
+
+1. **Desafíos de Integración**  
+   La transición desde el desarrollo web al ecosistema Android requirió una fase de aprendizaje sustancial, especialmente en la optimización de la interfaz para múltiples dispositivos y la correcta gestión de permisos nativos. Sin embargo, la adopción de servicios integrados como **Firebase** y **Google Maps** aportó la solidez necesaria para implementar funcionalidades clave.
+
+2. **Satisfacción con el Resultado**  
+   El enfoque nativo en **Kotlin** y **Jetpack** permitió un mayor aprovechamiento de las capacidades del dispositivo, brindando una experiencia de usuario ágil y fluida. El soporte offline mediante **Room** y la sincronización en tiempo real con **Firestore** añaden un valor diferencial, particularmente útil en entornos con cobertura limitada.
+
+3. **Rol de la Inteligencia Artificial**  
+   La inclusión de herramientas de IA —**Cursor**, **OpenAI** y **Copilot**— agilizó la producción y revisión del código, fomentando mejoras continuas en la calidad. Además, la integración con GitHub Actions posibilitó un sistema de **CI/CD** inteligente que detecta y corrige problemas de forma temprana.
+
+4. **Ventajas del Enfoque Nativo**  
+   Alinear el desarrollo con las tecnologías oficiales de Android no solo facilitó la integración de APIs como Google Maps, sino que también permitió un diseño coherente y moderno bajo los lineamientos de **Material Design**. Esto garantiza una interfaz visualmente consistente y una base sólida para futuras extensiones.
+
+5. **Arquitectura Limpia y MVVM**  
+   El uso de **Clean Architecture** y MVVM propicia una separación clara de responsabilidades, lo que facilita la escalabilidad y el mantenimiento. El patrón de repositorios hace posible modificar o ampliar la capa de datos (por ejemplo, cambiando de backend) con un impacto mínimo en la UI.
+
+6. **Estrategia Offline First**  
+   Mediante **Room Database**, la aplicación sigue operativa en ausencia de internet, un factor crucial para el monitoreo y la logística de flotas en áreas de conectividad limitada. Esta característica mejora la confiabilidad y reduce el riesgo de pérdida de datos.
+
+7. **Optimización de Rendimiento**  
+   Las **Coroutines** de Kotlin resultaron imprescindibles para gestionar tareas asíncronas sin bloquear la interfaz, contribuyendo a una navegación fluida incluso en operaciones que exigen un gran volumen de datos o interacción constante con el servidor.
+
+8. **Perspectivas de Futuro**  
+   El proyecto cuenta con una arquitectura apta para la incorporación de nuevas APIs (por ejemplo, servicios de clima o tráfico) y la implementación de mejoras visuales —como la **clusterización de marcadores**— para la gestión de grandes volúmenes de información.
+
+En definitiva, **GeoFleet** se consolida como una solución robusta y escalable que ha servido de plataforma de aprendizaje para explorar el desarrollo nativo, la integración de servicios de terceros y el uso de IA en el ciclo de vida del proyecto. El camino recorrido sienta las bases para seguir evolucionando la aplicación y explotando nuevos horizontes funcionales en la gestión de flotas.

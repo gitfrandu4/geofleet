@@ -186,6 +186,39 @@ class VehicleProfileViewModel : ViewModel() {
         }
     }
 
+    fun deleteImage(imageUrl: String) {
+        viewModelScope.launch {
+            try {
+                _isSaving.value = true
+
+                // Remove the image from storage
+                val storageRef = storage.getReferenceFromUrl(imageUrl)
+                storageRef.delete().await()
+
+                // Update vehicle with removed image
+                val currentVehicle = _vehicle.value ?: return@launch
+                val updatedImages = currentVehicle.images.filter { it != imageUrl }
+
+                // Update Firestore
+                db.collection("vehicles")
+                    .document(currentVehicle.id)
+                    .update("images", updatedImages)
+                    .await()
+
+                // Update local state
+                _vehicle.value = currentVehicle.copy(images = updatedImages)
+
+                _isSaving.value = false
+                _saveComplete.value = true
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Error deleting image: ${e.message}", e)
+                _error.value = "Error deleting image: ${e.message}"
+                _isSaving.value = false
+                _saveComplete.value = false
+            }
+        }
+    }
+
     fun resetSaveComplete() {
         _saveComplete.value = null
     }

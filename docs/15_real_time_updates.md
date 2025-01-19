@@ -1,29 +1,30 @@
-# Technical Documentation
+# Documentación Técnica
 
-## Real-time Vehicle Position Updates
+## Actualizaciones en Tiempo Real de Posición de Vehículos
 
-### Overview
-The application implements real-time vehicle position tracking using Kotlin Coroutines for efficient background processing. The update interval is configurable through the BuildConfig system.
+### Descripción General
+La aplicación implementa seguimiento de posición de vehículos en tiempo real utilizando Corrutinas de Kotlin para un procesamiento eficiente en segundo plano. El intervalo de actualización es configurable a través del sistema BuildConfig. Las posiciones de los vehículos ahora están mejoradas con soporte de geocodificación para mostrar direcciones legibles por humanos.
 
-### Key Components
+### Componentes Principales
 
-#### 1. Build Configuration
-In `app/build.gradle`, a custom BuildConfig field is defined:
+#### 1. Configuración de Build
+En `app/build.gradle`, se define un campo BuildConfig personalizado:
 ```groovy
 buildConfigField "long", "REFRESH_INTERVAL_MILLIS", "${properties.getProperty('REFRESH_INTERVAL_MILLIS', '60000')}L"
 ```
-This allows for configurable refresh intervals that can be modified without code changes.
+Esto permite intervalos de actualización configurables que se pueden modificar sin cambios en el código.
 
-#### 2. MapActivity Implementation
-The `MapActivity` class handles periodic position updates using the following components:
+#### 2. Implementación de MapActivity
+La clase `MapActivity` maneja actualizaciones periódicas de posición utilizando los siguientes componentes:
 
-- **refreshJob**: A coroutine Job that manages the lifecycle of periodic updates
-- **startPeriodicRefresh()**: Initiates periodic updates using coroutines
-- **Lifecycle Management**: Proper cleanup in `onDestroy()` to prevent memory leaks
+- **refreshJob**: Un Job de corrutina que gestiona el ciclo de vida de las actualizaciones periódicas
+- **startPeriodicRefresh()**: Inicia actualizaciones periódicas usando corrutinas
+- **Gestión del Ciclo de Vida**: Limpieza adecuada en `onDestroy()` para prevenir fugas de memoria
+- **Integración de Geocodificación**: Convierte coordenadas a direcciones para una mejor experiencia de usuario
 
-### Technical Implementation Details
+### Detalles Técnicos de Implementación
 
-#### Coroutine Usage
+#### Uso de Corrutinas
 ```kotlin
 private fun startPeriodicRefresh() {
     refreshJob?.cancel()
@@ -32,7 +33,7 @@ private fun startPeriodicRefresh() {
             try {
                 refreshVehiclePositions()
             } catch (e: Exception) {
-                Log.e(TAG, "Error refreshing vehicle positions", e)
+                Log.e(TAG, "Error al actualizar posiciones de vehículos", e)
             }
             delay(BuildConfig.REFRESH_INTERVAL_MILLIS)
         }
@@ -40,14 +41,14 @@ private fun startPeriodicRefresh() {
 }
 ```
 
-Key aspects:
-- Uses `lifecycleScope` to tie the coroutine lifecycle to the activity
-- Implements error handling for network failures
-- Configurable refresh interval via BuildConfig
-- Proper cancellation handling
+Aspectos clave:
+- Utiliza `lifecycleScope` para vincular el ciclo de vida de la corrutina a la actividad
+- Implementa manejo de errores para fallos de red
+- Intervalo de actualización configurable vía BuildConfig
+- Manejo adecuado de cancelación
 
-#### Memory Management
-The implementation includes proper cleanup:
+#### Gestión de Memoria
+La implementación incluye limpieza adecuada:
 ```kotlin
 override fun onDestroy() {
     super.onDestroy()
@@ -55,20 +56,37 @@ override fun onDestroy() {
 }
 ```
 
-### UI Components
-- Vehicle markers on map with distinct states (selected/unselected)
-- Real-time position updates
-- Error handling with user feedback via Snackbar
+#### Flujo de Datos de Posición
+1. Las posiciones se obtienen de la API
+2. Se almacenan en la base de datos Room para acceso sin conexión
+3. Se actualizan en Firestore para sincronización en tiempo real
+4. Las coordenadas se geocodifican a direcciones
+5. La UI se actualiza con la información más reciente
 
-### Configuration
-The refresh interval can be configured in `local.properties`:
+### Componentes de UI
+- Marcadores de vehículos en el mapa con estados distintos (seleccionado/no seleccionado)
+- Actualizaciones de posición en tiempo real
+- Direcciones geocodificadas en la lista de vehículos
+- Estados de carga durante la resolución de direcciones
+- Manejo de errores con retroalimentación al usuario vía Snackbar
+
+### Configuración
+El intervalo de actualización se puede configurar en `local.properties`:
 ```properties
 REFRESH_INTERVAL_MILLIS=60000
 ```
 
-## Best Practices
-1. Coroutine scope management
-2. Proper error handling
-3. Configurable parameters
-4. Memory leak prevention
-5. User feedback for errors 
+### Persistencia de Datos
+- Posiciones de vehículos almacenadas en base de datos Room
+- Direcciones geocodificadas en caché por 7 días
+- Limpieza automática de entradas de caché expiradas
+- Sincronización con Firestore para actualizaciones en tiempo real
+
+## Mejores Prácticas
+1. Gestión de scope de corrutinas
+2. Manejo adecuado de errores
+3. Parámetros configurables
+4. Prevención de fugas de memoria
+5. Retroalimentación al usuario para errores
+6. Estrategias eficientes de caché
+7. Mecanismos de respaldo elegantes 

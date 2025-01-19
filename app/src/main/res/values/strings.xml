@@ -174,7 +174,20 @@
         vehículo</string>
     <string name="camera_permission_denied">No se puede tomar fotos sin permiso de cámara</string>
 
+    <!-- Vehicle Actions -->
     <string name="vehicle_id_format">ID: %s</string>
     <string name="change_profile_image">Cambiar imagen de perfil</string>
     <string name="save">Guardar</string>
+    <string name="delete_vehicle">Borrar vehículo</string>
+    <string name="delete_image">Borrar imagen</string>
+    <string name="delete_image_confirmation">¿Estás seguro de que quieres borrar esta imagen?</string>
+    <string name="delete">Borrar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="delete_vehicle_confirmation">¿Estás seguro de que quieres borrar este vehículo?</string>
+    <string name="vehicle_deleted">Vehículo %s borrado correctamente</string>
+    <string name="error_deleting_vehicle">Error al borrar el vehículo</string>
+
+    <!-- Location -->
+    <string name="loading_address">Cargando dirección…</string>
+    <string name="no_position_available">Posición no disponible</string>
 </resources>

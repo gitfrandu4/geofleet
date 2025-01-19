@@ -32,6 +32,9 @@
     <color name="md_theme_light_outlineVariant">#FFB896</color>
     <color name="md_theme_light_scrim">#000000</color>
 
+    <!-- Dark theme colors -->
+    <color name="md_theme_dark_primary">#FFB896</color>
+
     <!-- Brand colors -->
     <color name="brand_color">#F2632A</color>
     <color name="brand_color_light">#FFDBCA</color>
@@ -44,4 +47,5 @@
     <!-- Material 3 colors -->
     <color name="error">#BA1A1A</color>
     <color name="on_error_container">#FFFFFF</color>
+    <color name="error_container">#FFDAD6</color>
 </resources>
