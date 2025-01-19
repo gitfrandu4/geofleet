@@ -34,6 +34,35 @@
 
     <!-- Dark theme colors -->
     <color name="md_theme_dark_primary">#FFB896</color>
+    <color name="md_theme_dark_onPrimary">#A94A1D</color>
+    <color name="md_theme_dark_primaryContainer">#F2632A</color>
+    <color name="md_theme_dark_onPrimaryContainer">#FFDBCA</color>
+    <color name="md_theme_dark_secondary">#FFDBCA</color>
+    <color name="md_theme_dark_onSecondary">#A94A1D</color>
+    <color name="md_theme_dark_secondaryContainer">#F2632A</color>
+    <color name="md_theme_dark_onSecondaryContainer">#FFDBCA</color>
+    <color name="md_theme_dark_tertiary">#FFB896</color>
+    <color name="md_theme_dark_onTertiary">#A94A1D</color>
+    <color name="md_theme_dark_tertiaryContainer">#F2632A</color>
+    <color name="md_theme_dark_onTertiaryContainer">#FFDBCA</color>
+    <color name="md_theme_dark_error">#FFB4AB</color>
+    <color name="md_theme_dark_errorContainer">#93000A</color>
+    <color name="md_theme_dark_onError">#690005</color>
+    <color name="md_theme_dark_onErrorContainer">#FFDAD6</color>
+    <color name="md_theme_dark_background">#201A18</color>
+    <color name="md_theme_dark_onBackground">#EDE0DC</color>
+    <color name="md_theme_dark_surface">#201A18</color>
+    <color name="md_theme_dark_onSurface">#EDE0DC</color>
+    <color name="md_theme_dark_surfaceVariant">#A94A1D</color>
+    <color name="md_theme_dark_onSurfaceVariant">#FFDBCA</color>
+    <color name="md_theme_dark_outline">#FFB896</color>
+    <color name="md_theme_dark_inverseOnSurface">#201A18</color>
+    <color name="md_theme_dark_inverseSurface">#EDE0DC</color>
+    <color name="md_theme_dark_inversePrimary">#F2632A</color>
+    <color name="md_theme_dark_shadow">#000000</color>
+    <color name="md_theme_dark_surfaceTint">#FFB896</color>
+    <color name="md_theme_dark_outlineVariant">#A94A1D</color>
+    <color name="md_theme_dark_scrim">#000000</color>
 
     <!-- Brand colors -->
     <color name="brand_color">#F2632A</color>
